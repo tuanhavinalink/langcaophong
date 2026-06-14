@@ -33,7 +33,8 @@ export async function POST(req: NextRequest) {
     })
 
     return NextResponse.json({ success: true, userId: user.id })
-  } catch (error) {
-    return NextResponse.json({ error: "Lỗi server" }, { status: 500 })
+  } catch (error: any) {
+    console.error("Register error:", error?.message || error)
+    return NextResponse.json({ error: "Lỗi server: " + (error?.message || "Unknown") }, { status: 500 })
   }
 }

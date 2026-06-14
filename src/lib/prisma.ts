@@ -1,12 +1,23 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
+import { Pool } from 'pg'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
 function createPrismaClient() {
-  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
+  // Use session pooler (DIRECT_URL, port 5432) - supports prepared statements
+  const connectionString = (process.env.DIRECT_URL || process.env.DATABASE_URL)!
+    .replace('?pgbouncer=true', '')
+
+  const pool = new Pool({
+    connectionString,
+    max: 1,
+    ssl: { rejectUnauthorized: false },
+  })
+
+  const adapter = new PrismaPg(pool)
   return new PrismaClient({ adapter } as any)
 }
 
