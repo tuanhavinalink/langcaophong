@@ -49,7 +49,7 @@ export default function BookingPage() {
   const [checkIn, setCheckIn] = useState("")
   const [checkOut, setCheckOut] = useState("")
   const [guests, setGuests] = useState(1)
-  const [selectedServices, setSelectedServices] = useState<Set<string>>(new Set())
+  const [selectedServices, setSelectedServices] = useState<Map<string, number>>(new Map())
   const [notes, setNotes] = useState("")
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -80,13 +80,19 @@ export default function BookingPage() {
 
   const servicesPrice = services
     .filter(s => selectedServices.has(s.id))
-    .reduce((sum, s) => sum + calcServicePrice(s, guests, nights, roomQty), 0)
+    .reduce((sum, s) => sum + calcServicePrice(s, guests, nights, roomQty) * (selectedServices.get(s.id) || 1), 0)
 
   const totalPrice = basePrice + tipWcBedding + servicesPrice
 
   const toggleService = (id: string) => {
-    const next = new Set(selectedServices)
-    if (next.has(id)) next.delete(id); else next.add(id)
+    const next = new Map(selectedServices)
+    if (next.has(id)) next.delete(id); else next.set(id, 1)
+    setSelectedServices(next)
+  }
+
+  const setServiceQty = (id: string, qty: number) => {
+    const next = new Map(selectedServices)
+    if (qty <= 0) next.delete(id); else next.set(id, qty)
     setSelectedServices(next)
   }
 
@@ -102,7 +108,7 @@ export default function BookingPage() {
         roomId: selectedRoom.id,
         checkIn, checkOut, guests,
         roomQty,
-        selectedServiceIds: Array.from(selectedServices),
+        selectedServices: Array.from(selectedServices.entries()).map(([id, qty]) => ({ id, qty })),
         basePrice, tipWcBedding, servicesPrice,
         notes,
         isFullVillage: false,
@@ -246,24 +252,38 @@ export default function BookingPage() {
                     <div key={group.label}>
                       <div className="text-xs font-semibold text-gray-500 uppercase mb-2">{group.label}</div>
                       <div className="space-y-2">
-                        {group.items.map(svc => (
-                          <label key={svc.id} className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors">
-                            <input
-                              type="checkbox"
-                              checked={selectedServices.has(svc.id)}
-                              onChange={() => toggleService(svc.id)}
-                              className="w-4 h-4 accent-green-700"
-                            />
-                            {svc.icon && <span className="text-lg">{svc.icon}</span>}
-                            <div className="flex-1">
-                              <div className="font-medium text-gray-800 text-sm">{svc.name}</div>
-                              {svc.description && <div className="text-xs text-gray-500">{svc.description}</div>}
+                        {group.items.map(svc => {
+                          const checked = selectedServices.has(svc.id)
+                          const qty = selectedServices.get(svc.id) || 1
+                          return (
+                            <div key={svc.id} className={`flex items-center gap-3 p-3 rounded-xl border transition-colors ${checked ? 'border-green-200 bg-green-50' : 'border-gray-100 hover:bg-gray-50'}`}>
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() => toggleService(svc.id)}
+                                className="w-4 h-4 accent-green-700 shrink-0 cursor-pointer"
+                              />
+                              {svc.icon && <span className="text-lg shrink-0">{svc.icon}</span>}
+                              <div className="flex-1 min-w-0 cursor-pointer" onClick={() => toggleService(svc.id)}>
+                                <div className="font-medium text-gray-800 text-sm">{svc.name}</div>
+                                {svc.description && <div className="text-xs text-gray-500">{svc.description}</div>}
+                              </div>
+                              {/* Qty stepper */}
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                {checked && (
+                                  <>
+                                    <button type="button" onClick={() => setServiceQty(svc.id, qty - 1)} className="w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-100 font-bold text-base leading-none">−</button>
+                                    <span className="w-6 text-center font-semibold text-gray-900 text-sm">{qty}</span>
+                                    <button type="button" onClick={() => setServiceQty(svc.id, qty + 1)} className="w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-100 font-bold text-base leading-none">+</button>
+                                  </>
+                                )}
+                              </div>
+                              <div className="text-sm font-semibold text-right shrink-0" style={{ color: '#2d6a4f' }}>
+                                {priceUnitLabel(svc)}
+                              </div>
                             </div>
-                            <div className="text-sm font-semibold text-right" style={{ color: '#2d6a4f' }}>
-                              {priceUnitLabel(svc)}
-                            </div>
-                          </label>
-                        ))}
+                          )
+                        })}
                       </div>
                     </div>
                   ))}
@@ -296,12 +316,16 @@ export default function BookingPage() {
                       <span className="text-xs text-gray-400">{formatCurrency(tipWcBedding)}</span>
                     </div>
                   )}
-                  {services.filter(s => selectedServices.has(s.id)).map(svc => (
-                    <div key={svc.id} className="flex justify-between text-gray-600">
-                      <span>{svc.icon} {svc.name}</span>
-                      <span>{formatCurrency(calcServicePrice(svc, guests, nights))}</span>
-                    </div>
-                  ))}
+                  {services.filter(s => selectedServices.has(s.id)).map(svc => {
+                    const qty = selectedServices.get(svc.id) || 1
+                    const lineTotal = calcServicePrice(svc, guests, nights, roomQty) * qty
+                    return (
+                      <div key={svc.id} className="flex justify-between text-gray-600">
+                        <span>{svc.icon} {svc.name}{qty > 1 ? ` ×${qty}` : ''}</span>
+                        <span>{formatCurrency(lineTotal)}</span>
+                      </div>
+                    )
+                  })}
                   <div className="border-t border-gray-100 pt-2 flex justify-between">
                     <span className="font-bold text-gray-900">Tổng cộng</span>
                     <span className="font-bold text-lg" style={{ color: '#2d6a4f' }}>{formatCurrency(totalPrice)}</span>
