@@ -166,6 +166,18 @@ model Service {
   createdAt   DateTime @default(now())
 }
 
+model MediaItem {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  type        String   @default("image") // "image" | "video"
+  url         String   // image URL or YouTube/video URL
+  thumbnail   String?  // for video thumbnails
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
+
 model AffiliateEarning {
   id          String   @id @default(cuid())
   userId      String

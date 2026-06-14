@@ -95,7 +95,7 @@ export default function HomePage() {
               Đặt Phòng Ngay
             </Link>
             <Link
-              href="#courses"
+              href="/kham-pha-lang"
               className="px-8 py-4 rounded-full font-semibold text-lg border-2 border-white/70 text-white hover:bg-white/20 transition-all"
             >
               Khám Phá Làng

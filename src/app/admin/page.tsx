@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { Users, Calendar, Search, Edit2, Check, X, TrendingUp, Home, Plus, Trash2, Coffee, Bell, Pin, Send, BookOpen } from "lucide-react"
+import { Users, Calendar, Search, Edit2, Check, X, TrendingUp, Home, Plus, Trash2, Coffee, Bell, Pin, Send, BookOpen, Video, Image as ImageIcon } from "lucide-react"
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount)
@@ -59,6 +59,13 @@ interface ServiceData {
   price: number; priceUnit: string; category: string; isActive: boolean; sortOrder: number
 }
 
+interface MediaData {
+  id: string; title: string; description: string | null; type: string
+  url: string; thumbnail: string | null; sortOrder: number; isActive: boolean
+}
+
+const emptyMedia: Partial<MediaData> = { title: "", description: "", type: "image", url: "", thumbnail: "", sortOrder: 0, isActive: true }
+
 const PRICE_UNIT_LABELS: Record<string, string> = {
   booking: "đ/lần đặt",
   person_night: "đ/người/đêm",
@@ -73,7 +80,7 @@ const emptyService: Partial<ServiceData> = { name: "", description: "", icon: ""
 export default function AdminPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const [tab, setTab] = useState<"users" | "bookings" | "rooms" | "services" | "notifications" | "courses">("users")
+  const [tab, setTab] = useState<"users" | "bookings" | "rooms" | "services" | "notifications" | "courses" | "media">("users")
   const [users, setUsers] = useState<UserData[]>([])
   const [bookings, setBookings] = useState<BookingData[]>([])
   const [rooms, setRooms] = useState<RoomData[]>([])
@@ -89,6 +96,9 @@ export default function AdminPage() {
   const [isNewRoom, setIsNewRoom] = useState(false)
   const [editingService, setEditingService] = useState<Partial<ServiceData> | null>(null)
   const [isNewService, setIsNewService] = useState(false)
+  const [mediaItems, setMediaItems] = useState<MediaData[]>([])
+  const [editingMedia, setEditingMedia] = useState<Partial<MediaData> | null>(null)
+  const [isNewMedia, setIsNewMedia] = useState(false)
   const [loading, setLoading] = useState(false)
 
   const role = (session?.user as any)?.role
@@ -105,6 +115,7 @@ export default function AdminPage() {
     fetch("/api/admin/services").then(r => r.json()).then(setServices)
     fetch("/api/admin/notifications").then(r => r.json()).then(setNotifications)
     fetch("/api/courses/enroll").then(r => r.json()).then(setEnrollments)
+    fetch("/api/admin/media").then(r => r.json()).then(setMediaItems)
   }, [])
 
   const filteredUsers = users.filter(u =>
@@ -197,6 +208,25 @@ export default function AdminPage() {
     setServices(services.filter(s => s.id !== id))
   }
 
+  const saveMedia = async () => {
+    if (!editingMedia) return
+    setLoading(true)
+    if (isNewMedia) {
+      const res = await fetch("/api/admin/media", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(editingMedia) })
+      if (res.ok) { const m = await res.json(); setMediaItems([...mediaItems, m]) }
+    } else {
+      const res = await fetch(`/api/admin/media/${(editingMedia as MediaData).id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(editingMedia) })
+      if (res.ok) { const m = await res.json(); setMediaItems(mediaItems.map(x => x.id === m.id ? m : x)) }
+    }
+    setEditingMedia(null); setLoading(false)
+  }
+
+  const deleteMedia = async (id: string) => {
+    if (!confirm("Xóa mục này?")) return
+    await fetch(`/api/admin/media/${id}`, { method: "DELETE" })
+    setMediaItems(mediaItems.filter(m => m.id !== id))
+  }
+
   const totalRevenue = bookings.filter(b => b.status !== "CANCELLED").reduce((s, b) => s + b.totalPrice, 0)
   const pendingCount = bookings.filter(b => b.status === "PENDING").length
 
@@ -243,6 +273,7 @@ export default function AdminPage() {
             { key: "services", label: `Dịch Vụ (${services.length})`, icon: Coffee },
             { key: "courses", label: `Khóa Học (${enrollments.length})`, icon: BookOpen },
             { key: "notifications", label: `Thông Báo (${notifications.length})`, icon: Bell },
+            { key: "media", label: `Khám Phá Làng (${mediaItems.length})`, icon: Video },
           ] as const).map(t => (
             <button
               key={t.key}
@@ -477,6 +508,63 @@ export default function AdminPage() {
         </div>
       )}
 
+      {/* Media Tab */}
+      {tab === "media" && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm text-gray-500">Quản lý ảnh và video hiển thị trên trang <strong>/kham-pha-lang</strong></p>
+            <button onClick={() => { setIsNewMedia(true); setEditingMedia({ ...emptyMedia }) }} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white font-medium text-sm" style={{ backgroundColor: '#2d6a4f' }}>
+              <Plus className="w-4 h-4" /> Thêm Mục Mới
+            </button>
+          </div>
+          {mediaItems.length === 0 ? (
+            <div className="py-20 text-center text-gray-400 bg-white rounded-2xl border border-gray-100">
+              <Video className="w-12 h-12 mx-auto mb-3 opacity-30" />
+              <p>Chưa có ảnh/video nào. Nhấn "Thêm Mục Mới" để bắt đầu.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {mediaItems.map(m => (
+                <div key={m.id} className={`bg-white rounded-2xl border overflow-hidden shadow-sm ${!m.isActive ? 'opacity-50' : 'border-gray-100'}`}>
+                  <div className="aspect-video bg-gray-100 relative">
+                    {m.type === "video" ? (
+                      (() => {
+                        const ytMatch = m.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)
+                        const thumb = m.thumbnail || (ytMatch ? `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg` : null)
+                        return thumb
+                          ? <img src={thumb} alt={m.title} className="w-full h-full object-cover" />
+                          : <div className="w-full h-full flex items-center justify-center"><Video className="w-10 h-10 text-gray-300" /></div>
+                      })()
+                    ) : (
+                      <img src={m.url} alt={m.title} className="w-full h-full object-cover" onError={e => { (e.target as any).src = '' }} />
+                    )}
+                    <div className="absolute top-2 left-2">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${m.type === 'video' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
+                        {m.type === 'video' ? '▶ Video' : '🖼 Ảnh'}
+                      </span>
+                    </div>
+                    {!m.isActive && <div className="absolute top-2 right-2 px-2 py-0.5 bg-gray-800/70 text-white text-xs rounded-full">Đã ẩn</div>}
+                  </div>
+                  <div className="p-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 text-sm truncate">{m.title}</p>
+                        {m.description && <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{m.description}</p>}
+                        <p className="text-xs text-gray-400 mt-1">Thứ tự: {m.sortOrder}</p>
+                      </div>
+                      <div className="flex gap-1 shrink-0">
+                        <button onClick={() => { setIsNewMedia(false); setEditingMedia({ ...m }) }} className="p-1.5 rounded-lg hover:bg-gray-50 text-gray-400 hover:text-green-700"><Edit2 className="w-4 h-4" /></button>
+                        <button onClick={() => deleteMedia(m.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Notifications Tab */}
       {tab === "notifications" && (
         <div>
@@ -635,6 +723,69 @@ export default function AdminPage() {
                 <Send className="w-4 h-4" /> {loading ? 'Đang gửi...' : isNewNotif ? 'Gửi Thông Báo' : 'Lưu Thay Đổi'}
               </button>
               <button onClick={() => setEditingNotif(null)} className="flex-1 py-2.5 rounded-xl font-medium text-sm border border-gray-200 text-gray-700">Hủy</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Media Modal */}
+      {editingMedia && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Video className="w-5 h-5" style={{ color: '#2d6a4f' }} />
+              {isNewMedia ? 'Thêm Ảnh / Video Mới' : 'Chỉnh Sửa'}
+            </h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Loại</label>
+                <div className="flex gap-3">
+                  {[{ value: "image", label: "🖼 Hình ảnh" }, { value: "video", label: "▶ Video" }].map(t => (
+                    <label key={t.value} className={`flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl border cursor-pointer text-sm font-medium transition-colors ${editingMedia.type === t.value ? 'border-green-500 bg-green-50 text-green-800' : 'border-gray-200 hover:bg-gray-50 text-gray-700'}`}>
+                      <input type="radio" name="mediaType" checked={editingMedia.type === t.value} onChange={() => setEditingMedia({ ...editingMedia, type: t.value })} className="sr-only" />
+                      {t.label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Tiêu đề</label><input value={editingMedia.title || ""} onChange={e => setEditingMedia({ ...editingMedia, title: e.target.value })} className={inputCls} placeholder="Bungalow view sông..." /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Mô tả (tuỳ chọn)</label><textarea rows={2} value={editingMedia.description || ""} onChange={e => setEditingMedia({ ...editingMedia, description: e.target.value })} className={inputCls + " resize-none"} placeholder="Mô tả ngắn..." /></div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {editingMedia.type === "video" ? "URL Video (YouTube hoặc link trực tiếp)" : "URL Hình ảnh"}
+                </label>
+                <input value={editingMedia.url || ""} onChange={e => setEditingMedia({ ...editingMedia, url: e.target.value })} className={inputCls} placeholder={editingMedia.type === "video" ? "https://youtube.com/watch?v=..." : "https://..."} />
+              </div>
+              {editingMedia.type === "video" && (
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Thumbnail URL (tuỳ chọn — tự động lấy từ YouTube)</label><input value={editingMedia.thumbnail || ""} onChange={e => setEditingMedia({ ...editingMedia, thumbnail: e.target.value })} className={inputCls} placeholder="https://..." /></div>
+              )}
+              {/* Preview */}
+              {editingMedia.url && (
+                <div className="rounded-xl overflow-hidden border border-gray-100 aspect-video bg-gray-100">
+                  {editingMedia.type === "video" ? (
+                    (() => {
+                      const ytMatch = (editingMedia.url || "").match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)
+                      const thumb = editingMedia.thumbnail || (ytMatch ? `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg` : null)
+                      return thumb ? <img src={thumb} alt="preview" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">Không có thumbnail</div>
+                    })()
+                  ) : (
+                    <img src={editingMedia.url} alt="preview" className="w-full h-full object-cover" onError={e => { (e.target as any).style.display = 'none' }} />
+                  )}
+                </div>
+              )}
+              <div className="flex gap-3">
+                <div className="flex-1"><label className="block text-sm font-medium text-gray-700 mb-1">Thứ tự hiển thị</label><input type="number" min="0" value={editingMedia.sortOrder ?? 0} onChange={e => setEditingMedia({ ...editingMedia, sortOrder: Number(e.target.value) })} className={inputCls} /></div>
+                <div className="flex items-end pb-1">
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="checkbox" checked={editingMedia.isActive !== false} onChange={e => setEditingMedia({ ...editingMedia, isActive: e.target.checked })} className="w-4 h-4 accent-green-700" />
+                    <span className="text-gray-700">Hiển thị</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button onClick={saveMedia} disabled={loading || !editingMedia.title || !editingMedia.url} className="flex-1 py-2.5 rounded-xl text-white font-medium text-sm disabled:opacity-50" style={{ backgroundColor: '#2d6a4f' }}>{loading ? 'Lưu...' : isNewMedia ? 'Thêm Mục' : 'Lưu Thay Đổi'}</button>
+              <button onClick={() => setEditingMedia(null)} className="flex-1 py-2.5 rounded-xl font-medium text-sm border border-gray-200 text-gray-700">Hủy</button>
             </div>
           </div>
         </div>
