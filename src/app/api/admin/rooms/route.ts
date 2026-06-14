@@ -25,6 +25,7 @@ export async function POST(req: Request) {
       pricePerNight: Number(data.pricePerNight),
       tipService: Number(data.tipService) || 50000,
       tipWcBedding: Number(data.tipWcBedding) || 0,
+      totalUnits: Number(data.totalUnits) || 1,
       description: data.description || null,
       amenities: data.amenities || null,
       isAvailable: data.isAvailable !== false,

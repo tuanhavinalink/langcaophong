@@ -11,7 +11,7 @@ function formatCurrency(amount: number) {
 
 interface Room {
   id: string; name: string; type: string; capacity: number
-  pricePerNight: number; tipService: number; description?: string
+  pricePerNight: number; tipService: number; tipWcBedding: number; totalUnits: number; description?: string
 }
 
 interface Service {
@@ -43,6 +43,7 @@ export default function BookingPage() {
   const [rooms, setRooms] = useState<Room[]>([])
   const [services, setServices] = useState<Service[]>([])
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
+  const [roomQty, setRoomQty] = useState(1)
   const [checkIn, setCheckIn] = useState("")
   const [checkOut, setCheckOut] = useState("")
   const [guests, setGuests] = useState(1)
@@ -72,7 +73,7 @@ export default function BookingPage() {
     ? Math.max(0, Math.round((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86400000))
     : 0
 
-  const basePrice = selectedRoom ? selectedRoom.pricePerNight * nights : 0
+  const basePrice = selectedRoom ? selectedRoom.pricePerNight * nights * roomQty : 0
 
   const servicesPrice = services
     .filter(s => selectedServices.has(s.id))
@@ -97,6 +98,7 @@ export default function BookingPage() {
       body: JSON.stringify({
         roomId: selectedRoom.id,
         checkIn, checkOut, guests,
+        roomQty,
         selectedServiceIds: Array.from(selectedServices),
         basePrice, servicesPrice,
         notes,
@@ -174,22 +176,48 @@ export default function BookingPage() {
               {rooms.length === 0 ? (
                 <p className="text-gray-500 text-center py-6">Không có phòng trống trong thời gian này</p>
               ) : (
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {rooms.map(room => (
-                    <div
-                      key={room.id}
-                      onClick={() => setSelectedRoom(room)}
-                      className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedRoom?.id === room.id ? 'border-green-600 bg-green-50' : 'border-gray-200 hover:border-green-300'}`}
-                    >
-                      <div className="flex justify-between items-start mb-1">
-                        <h3 className="font-semibold text-gray-900">{room.name}</h3>
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${room.type === 'VILLA' ? 'bg-purple-100 text-purple-700' : room.type === 'GLAMPING' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>{room.type}</span>
+                <div className="space-y-3">
+                  {rooms.map(room => {
+                    const isSelected = selectedRoom?.id === room.id
+                    return (
+                      <div
+                        key={room.id}
+                        className={`p-4 rounded-xl border-2 transition-all ${isSelected ? 'border-green-600 bg-green-50' : 'border-gray-200'}`}
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 cursor-pointer" onClick={() => { setSelectedRoom(room); setRoomQty(1) }}>
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-semibold text-gray-900">{room.name}</h3>
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${room.type === 'VILLA' ? 'bg-purple-100 text-purple-700' : room.type === 'GLAMPING' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>{room.type}</span>
+                            </div>
+                            <p className="text-sm text-gray-500">Sức chứa: {room.capacity} người/phòng · {room.totalUnits} {room.type === 'GLAMPING' ? 'lều' : 'phòng'} có sẵn</p>
+                            {room.description && <p className="text-xs text-gray-400 mt-0.5">{room.description}</p>}
+                            <div className="font-bold mt-1" style={{ color: '#2d6a4f' }}>{formatCurrency(room.pricePerNight)}<span className="text-gray-400 font-normal text-xs">/đêm/phòng</span></div>
+                          </div>
+
+                          {/* Qty selector */}
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="text-xs text-gray-500">Số lượng</span>
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => { setSelectedRoom(room); setRoomQty(q => Math.max(1, q - 1)) }}
+                                className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-100 font-bold"
+                              >−</button>
+                              <span className="w-8 text-center font-bold text-gray-900">{isSelected ? roomQty : 0}</span>
+                              <button
+                                type="button"
+                                onClick={() => { setSelectedRoom(room); setRoomQty(q => Math.min(room.totalUnits, isSelected ? q + 1 : 1)) }}
+                                className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-100 font-bold"
+                                disabled={isSelected && roomQty >= room.totalUnits}
+                              >+</button>
+                            </div>
+                            <span className="text-xs text-gray-400">tối đa {room.totalUnits}</span>
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-sm text-gray-500 mb-2">Sức chứa: {room.capacity} người</p>
-                      {room.description && <p className="text-xs text-gray-500 mb-2">{room.description}</p>}
-                      <div className="font-bold" style={{ color: '#2d6a4f' }}>{formatCurrency(room.pricePerNight)}<span className="text-gray-400 font-normal text-xs">/đêm</span></div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </div>
@@ -249,10 +277,10 @@ export default function BookingPage() {
               <h3 className="font-bold text-gray-900 mb-4">Tóm Tắt Đặt Phòng</h3>
               {selectedRoom ? (
                 <div className="space-y-2 text-sm">
-                  <div className="font-medium text-gray-900">{selectedRoom.name}</div>
+                  <div className="font-medium text-gray-900">{selectedRoom.name} × {roomQty}</div>
                   {nights > 0 && (
                     <div className="flex justify-between">
-                      <span className="text-gray-600">{nights} đêm × {formatCurrency(selectedRoom.pricePerNight)}</span>
+                      <span className="text-gray-600">{roomQty} phòng × {nights} đêm × {formatCurrency(selectedRoom.pricePerNight)}</span>
                       <span className="font-medium">{formatCurrency(basePrice)}</span>
                     </div>
                   )}
