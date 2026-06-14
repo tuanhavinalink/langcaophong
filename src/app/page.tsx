@@ -134,18 +134,18 @@ export default function HomePage() {
                 Về Chúng Tôi
               </div>
               <h2 className="text-4xl font-bold text-gray-900 mb-6 leading-tight">
-                Thiên Đường Xanh<br />
-                <span style={{ color: '#2d6a4f' }}>Giữa Lòng Hòa Bình</span>
+                Khu Làng Doanh Nhân<br />
+                <span style={{ color: '#2d6a4f' }}>Phong Cách Châu Âu Giữa Núi Rừng Hòa Bình</span>
               </h2>
               <div className="space-y-4 text-gray-600 leading-relaxed">
                 <p>
-                  Làng Cao Phong tọa lạc tại vùng đất Cao Phong, Hòa Bình — nơi hội tụ của sông, núi, mây trời và hồ thung lũng thơ mộng. Cách Hà Nội chỉ 80km, nhưng đây là một thế giới hoàn toàn khác.
+                  Làng Cao Phong là khu làng được các cư dân chung tay xây dựng — phòng nghỉ đạt tiêu chuẩn du lịch được <strong className="text-gray-800">Tổng cục Du lịch xếp hạng Sao</strong>, với công suất lên tới <strong className="text-gray-800">50 khách ở miễn phí</strong> qua đêm.
                 </p>
                 <p>
-                  Chúng tôi xây dựng không gian nghỉ dưỡng hòa mình vào thiên nhiên với bungalow, glamping, villa song lập cùng các khóa học nâng cao đời sống tinh thần và sự nghiệp.
+                  Bạn chỉ cần TIP tiền WC + thay chăn ga gối cho bà con xứ Mường — bạn sẽ được sở hữu phòng nghỉ tiêu chuẩn gia đình 2 giường miễn phí. Tự nấu ăn, hái Sâm miễn phí trong Làng, hoặc book dịch vụ ăn uống & lửa trại của bà con Mường cho sự kiện.
                 </p>
                 <p>
-                  Mỗi góc của Làng Cao Phong đều được thiết kế để mang lại sự thư thái tối đa, từ nhà hàng ẩm thực dưỡng sinh, bến kayak trên hồ đến không gian thiền định giữa rừng núi.
+                  Công ty hay tổ chức có thể <strong className="text-gray-800">Team Building & Đào tạo nội bộ</strong> riêng biệt cả khu khi book trọn Làng — dễ dàng, linh hoạt, độc đáo.
                 </p>
               </div>
               <div className="flex gap-4 mt-8">
