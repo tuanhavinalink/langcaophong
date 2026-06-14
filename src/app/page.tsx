@@ -281,28 +281,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Map Section */}
-      <section className="py-20" style={{ backgroundColor: '#f0fdf4' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">Vị Trí <span style={{ color: '#2d6a4f' }}>Làng Cao Phong</span></h2>
-            <p className="text-gray-600">Cao Phong, Hòa Bình · 80km từ trung tâm Hà Nội</p>
-          </div>
-          <div className="rounded-2xl overflow-hidden shadow-xl border-4 border-white">
-            <iframe
-              src="https://www.google.com/maps?q=20.72256646707079,105.29194378227785&z=15&output=embed"
-              width="100%"
-              height="400"
-              style={{ border: 0 }}
-              allowFullScreen
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              title="Bản đồ Làng Cao Phong"
-            />
-          </div>
-        </div>
-      </section>
-
       {/* Booking CTA */}
       <section className="py-20" style={{ backgroundColor: '#2d6a4f' }}>
         <div className="max-w-4xl mx-auto px-4 text-center text-white">

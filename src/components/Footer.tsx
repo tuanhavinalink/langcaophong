@@ -54,7 +54,7 @@ export default function Footer() {
             <ul className="space-y-3">
               <li className="flex items-start gap-2 text-green-200 text-sm">
                 <MapPin className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#95d5b2' }} />
-                <span>Xóm Môn, Cao Phong, Hòa Bình (Cách Hà Nội 80km)</span>
+                <a href="https://www.google.com/maps?q=20.72256646707079,105.29194378227785" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Xóm Môn, Cao Phong, Hòa Bình (Cách Hà Nội 80km)</a>
               </li>
               <li className="flex items-center gap-2 text-green-200 text-sm">
                 <Phone className="w-4 h-4 shrink-0" style={{ color: '#95d5b2' }} />
