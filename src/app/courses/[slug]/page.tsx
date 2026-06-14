@@ -1,14 +1,14 @@
 import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { Clock, Users, Star, Check, BookOpen, ArrowLeft, User } from "lucide-react"
+import { Clock, Users, Star, Check, BookOpen, ArrowLeft, User, ExternalLink, Gift } from "lucide-react"
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount)
 }
 
 const gradients: Record<string, string> = {
-  "vi-mo": "from-blue-500 to-cyan-500",
+  "vi-mo": "from-blue-600 to-cyan-500",
   "solo": "from-purple-500 to-pink-500",
   "detox-sam": "from-green-500 to-emerald-500",
 }
@@ -20,6 +20,10 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
 
   const benefits: string[] = course.benefits ? JSON.parse(course.benefits) : []
   const curriculum: string[] = course.curriculum ? JSON.parse(course.curriculum) : []
+  const scheduleData = course.schedule ? JSON.parse(course.schedule) : null
+  const registerUrl = scheduleData?.registerUrl || null
+  const registerOptions = scheduleData?.options || []
+
   const gradient = gradients[slug] || "from-green-500 to-emerald-600"
   const discount = course.originalPrice ? Math.round((1 - course.price / course.originalPrice) * 100) : 0
 
@@ -36,9 +40,9 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium mb-4 bg-white/20">
                 <BookOpen className="w-3 h-3" /> Khóa Học Đặc Biệt
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">{course.name}</h1>
+              <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">{course.name}</h1>
               <p className="text-white/90 text-lg leading-relaxed mb-6">{course.description}</p>
-              <div className="flex flex-wrap gap-4 text-sm">
+              <div className="flex flex-wrap gap-3 text-sm">
                 <span className="flex items-center gap-1.5 bg-white/20 px-3 py-1.5 rounded-full">
                   <Clock className="w-4 h-4" /> {course.duration}
                 </span>
@@ -52,8 +56,11 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
                 )}
               </div>
             </div>
+
+            {/* Price Card */}
             <div className="bg-white rounded-2xl p-6 shadow-xl">
-              <div className="text-center mb-4">
+              <div className="text-center mb-5">
+                <p className="text-gray-500 text-sm mb-1">Học phí ăn ở tại Làng</p>
                 <div className="text-4xl font-bold mb-1" style={{ color: '#2d6a4f' }}>{formatCurrency(course.price)}</div>
                 {course.originalPrice && (
                   <div className="flex items-center justify-center gap-2">
@@ -62,26 +69,53 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
                   </div>
                 )}
               </div>
-              <Link
-                href="/booking"
-                className="block w-full text-center py-4 rounded-xl text-white font-semibold text-lg mb-3 transition-all hover:opacity-90"
-                style={{ backgroundColor: '#2d6a4f' }}
-              >
-                Đặt Phòng Kết Hợp
-              </Link>
-              <p className="text-center text-gray-500 text-sm">Cần đăng nhập để đăng ký khóa học</p>
+
+              {/* Register options */}
+              {registerOptions.length > 0 && (
+                <div className="mb-4 space-y-2">
+                  {registerOptions.map((opt: any, i: number) => (
+                    <div key={i} className="flex justify-between items-center text-sm px-3 py-2 rounded-lg bg-gray-50 border border-gray-100">
+                      <span className="text-gray-700 font-medium">{opt.type}</span>
+                      <span style={{ color: '#2d6a4f' }} className="font-semibold">
+                        {opt.price ? formatCurrency(opt.price) : "Liên hệ"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {registerUrl ? (
+                <a
+                  href={registerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 w-full py-4 rounded-xl text-white font-semibold text-lg mb-3 transition-all hover:opacity-90"
+                  style={{ backgroundColor: '#2d6a4f' }}
+                >
+                  Đăng Ký Ngay <ExternalLink className="w-5 h-5" />
+                </a>
+              ) : (
+                <Link
+                  href="/booking"
+                  className="block w-full text-center py-4 rounded-xl text-white font-semibold text-lg mb-3 transition-all hover:opacity-90"
+                  style={{ backgroundColor: '#2d6a4f' }}
+                >
+                  Đặt Phòng Kết Hợp
+                </Link>
+              )}
+
               <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Check className="w-4 h-4 text-green-600" /> Bao gồm chỗ ở và ăn uống
+                  <Check className="w-4 h-4 text-green-600 shrink-0" /> Bao gồm chỗ ở & ăn uống tại Làng
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Check className="w-4 h-4 text-green-600" /> Tài liệu học tập
+                  <Check className="w-4 h-4 text-green-600 shrink-0" /> Coaching 1-1 miễn phí
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Check className="w-4 h-4 text-green-600" /> Chứng chỉ hoàn thành
+                  <Check className="w-4 h-4 text-green-600 shrink-0" /> Có thể học Online (LMS / Zoom)
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Check className="w-4 h-4 text-green-600" /> Networking cùng cộng đồng
+                  <Check className="w-4 h-4 text-green-600 shrink-0" /> Chứng nhận hoàn thành khóa học
                 </div>
               </div>
             </div>
@@ -93,11 +127,12 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-2 space-y-8">
+
             {/* Benefits */}
             {benefits.length > 0 && (
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <Star className="w-6 h-6" style={{ color: '#2d6a4f' }} />
+                <h2 className="text-2xl font-bold text-gray-900 mb-5 flex items-center gap-2">
+                  <Gift className="w-6 h-6" style={{ color: '#2d6a4f' }} />
                   Bạn Sẽ Nhận Được
                 </h2>
                 <div className="grid sm:grid-cols-2 gap-3">
@@ -116,68 +151,97 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
             {/* Curriculum */}
             {curriculum.length > 0 && (
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <h2 className="text-2xl font-bold text-gray-900 mb-5 flex items-center gap-2">
                   <BookOpen className="w-6 h-6" style={{ color: '#2d6a4f' }} />
-                  Chương Trình Học
+                  Chương Trình
                 </h2>
                 <div className="space-y-3">
                   {curriculum.map((item, i) => (
-                    <div key={i} className="flex items-start gap-3 p-4 rounded-xl border border-gray-100">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style={{ backgroundColor: '#2d6a4f' }}>
+                    <div key={i} className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 hover:border-green-200 transition-colors">
+                      <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style={{ backgroundColor: '#2d6a4f' }}>
                         {i + 1}
                       </div>
                       <div className="pt-1">
-                        <span className="text-gray-800 font-medium">{item}</span>
+                        <span className="text-gray-800 font-medium leading-relaxed">{item}</span>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
             )}
+
+            {/* Location info */}
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-6 border border-blue-100">
+              <h2 className="text-xl font-bold text-gray-900 mb-3 flex items-center gap-2">
+                📍 Địa Điểm Tổ Chức
+              </h2>
+              <p className="text-gray-700 font-semibold text-lg mb-1">Làng Cao Phong - Hòa Bình</p>
+              <p className="text-gray-600 text-sm">Cách Hà Nội 80km • Giữa sông, núi và hồ trong thung lũng</p>
+              <div className="mt-3 flex gap-3 text-sm">
+                <span className="px-3 py-1.5 bg-white rounded-full text-gray-700 border border-blue-100">🌿 Không khí trong lành</span>
+                <span className="px-3 py-1.5 bg-white rounded-full text-gray-700 border border-blue-100">🏡 Bungalow & Glamping</span>
+                <span className="px-3 py-1.5 bg-white rounded-full text-gray-700 border border-blue-100">🍽️ Ăn sạch tại chỗ</span>
+              </div>
+            </div>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-4">
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
               <h3 className="font-bold text-gray-900 mb-4">Thông Tin Khóa Học</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between">
                   <span className="text-gray-500">Thời lượng</span>
                   <span className="font-medium text-gray-900">{course.duration}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Sĩ số tối đa</span>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Sĩ số</span>
                   <span className="font-medium text-gray-900">{course.maxStudents} người</span>
                 </div>
                 {course.instructor && (
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between">
                     <span className="text-gray-500">Giảng viên</span>
-                    <span className="font-medium text-gray-900">{course.instructor}</span>
+                    <span className="font-medium text-gray-900 text-right max-w-[140px]">{course.instructor}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between border-t pt-3">
                   <span className="text-gray-500">Học phí</span>
-                  <span className="font-bold" style={{ color: '#2d6a4f' }}>{formatCurrency(course.price)}</span>
+                  <span className="font-bold text-lg" style={{ color: '#2d6a4f' }}>{formatCurrency(course.price)}</span>
                 </div>
               </div>
             </div>
 
+            {/* CTA */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-              <h3 className="font-bold text-gray-900 mb-3">Liên Hệ Đăng Ký</h3>
-              <p className="text-sm text-gray-600 mb-4">Liên hệ ngay để được tư vấn và đặt chỗ sớm nhất</p>
+              <h3 className="font-bold text-gray-900 mb-2">Đăng Ký Ngay</h3>
+              <p className="text-sm text-gray-500 mb-4">Điền form để đặt chỗ. Số lượng giới hạn!</p>
+              {registerUrl && (
+                <a
+                  href={registerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-white font-semibold mb-3 transition-all hover:opacity-90"
+                  style={{ backgroundColor: '#2d6a4f' }}
+                >
+                  Điền Form Đăng Ký <ExternalLink className="w-4 h-4" />
+                </a>
+              )}
               <a
-                href="tel:0900000000"
-                className="block w-full text-center py-3 rounded-xl font-medium border-2 mb-3 transition-colors hover:bg-green-50"
+                href="https://zalo.me/0900000000"
+                className="block w-full text-center py-3 rounded-xl font-medium border-2 transition-colors hover:bg-green-50 text-sm"
                 style={{ borderColor: '#2d6a4f', color: '#2d6a4f' }}
               >
-                Gọi: 0900 000 000
+                💬 Tư vấn qua Zalo
               </a>
-              <a
-                href="mailto:hello@langcaophong.vn"
-                className="block w-full text-center py-3 rounded-xl font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors"
-              >
-                Email tư vấn
-              </a>
+            </div>
+
+            {/* Star rating */}
+            <div className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-2xl p-4 border border-yellow-100 text-center">
+              <div className="flex justify-center gap-1 mb-2">
+                {[1,2,3,4,5].map(i => <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />)}
+              </div>
+              <p className="text-sm font-semibold text-gray-800">4.9/5 từ học viên</p>
+              <p className="text-xs text-gray-500 mt-1">"Thay đổi cách nhìn hoàn toàn về đầu tư"</p>
             </div>
           </div>
         </div>
