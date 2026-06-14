@@ -314,8 +314,7 @@ export default function AdminPage() {
                   </div>
                   <p className="text-sm text-gray-500 mb-1">Sức chứa: {room.capacity} người</p>
                   {room.description && <p className="text-xs text-gray-400 mb-2">{room.description}</p>}
-                  <div className="font-bold text-lg mb-1" style={{ color: '#2d6a4f' }}>{formatCurrency(room.pricePerNight)}<span className="text-gray-400 text-xs font-normal">/đêm</span></div>
-                  <div className="text-xs text-gray-500">Phí dịch vụ bếp: {formatCurrency(room.tipService)}</div>
+                  <div className="font-bold text-lg" style={{ color: '#2d6a4f' }}>{formatCurrency(room.pricePerNight)}<span className="text-gray-400 text-xs font-normal">/đêm</span></div>
                   <div className="flex gap-2 mt-4">
                     <button onClick={() => { setIsNewRoom(false); setEditingRoom({ ...room }) }} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium border border-gray-200 hover:bg-gray-50">
                       <Edit2 className="w-3.5 h-3.5" /> Sửa
@@ -420,8 +419,7 @@ export default function AdminPage() {
                   </select>
                 </div>
                 <div><label className="block text-sm font-medium text-gray-700 mb-1">Sức chứa (người)</label><input type="number" min="1" value={editingRoom.capacity || 2} onChange={e => setEditingRoom({ ...editingRoom, capacity: Number(e.target.value) })} className={inputCls} /></div>
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">Giá/đêm (đ)</label><input type="number" min="0" value={editingRoom.pricePerNight || 0} onChange={e => setEditingRoom({ ...editingRoom, pricePerNight: Number(e.target.value) })} className={inputCls} /></div>
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">Phí dịch vụ bếp (đ)</label><input type="number" min="0" value={editingRoom.tipService || 0} onChange={e => setEditingRoom({ ...editingRoom, tipService: Number(e.target.value) })} className={inputCls} /></div>
+                <div className="col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Giá/đêm (đ)</label><input type="number" min="0" value={editingRoom.pricePerNight || 0} onChange={e => setEditingRoom({ ...editingRoom, pricePerNight: Number(e.target.value) })} className={inputCls} /></div>
               </div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Mô tả</label><textarea rows={2} value={editingRoom.description || ""} onChange={e => setEditingRoom({ ...editingRoom, description: e.target.value })} className={inputCls + " resize-none"} /></div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Tiện nghi (cách nhau bằng dấu phẩy)</label><input value={editingRoom.amenities || ""} onChange={e => setEditingRoom({ ...editingRoom, amenities: e.target.value })} className={inputCls} placeholder="WiFi, Điều hòa, Bồn tắm ngoài trời" /></div>
