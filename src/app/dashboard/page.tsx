@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import {
-  User, Calendar, BookOpen, Star, Crown, Home, Settings
+  User, Calendar, BookOpen, Star, Crown, Home, Settings, Bell, Pin
 } from "lucide-react"
 import AffiliateCard from "@/components/AffiliateCard"
 
@@ -60,6 +60,12 @@ export default async function DashboardPage() {
   })
 
   if (!user) redirect("/login")
+
+  const notifications = await prisma.notification.findMany({
+    where: { isActive: true, OR: [{ targetRoles: "ALL" }, { targetRoles: user.role }] },
+    orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
+    take: 10,
+  })
 
   const RoleIcon = roleIcons[user.role] || User
 
@@ -154,6 +160,26 @@ export default async function DashboardPage() {
 
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-6">
+            {/* Notifications */}
+            {notifications.length > 0 && (
+              <div className="space-y-2">
+                {notifications.map(n => (
+                  <div key={n.id} className={`rounded-2xl px-5 py-4 border ${n.isPinned ? 'border-amber-200 bg-amber-50' : 'bg-white border-gray-100 shadow-sm'}`}>
+                    <div className="flex items-start gap-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${n.isPinned ? 'bg-amber-100' : 'bg-green-50'}`}>
+                        {n.isPinned ? <Pin className="w-4 h-4 text-amber-500" /> : <Bell className="w-4 h-4" style={{ color: '#2d6a4f' }} />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-gray-900 text-sm">{n.title}</div>
+                        <p className="text-sm text-gray-600 mt-0.5 whitespace-pre-wrap">{n.content}</p>
+                        <p className="text-xs text-gray-400 mt-1">{formatDate(n.createdAt)}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {/* Bookings */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
               <div className="p-6 border-b border-gray-100 flex items-center justify-between">

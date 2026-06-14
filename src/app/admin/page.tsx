@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { Users, Calendar, Search, Edit2, Check, X, TrendingUp, Home, Plus, Trash2, Coffee } from "lucide-react"
+import { Users, Calendar, Search, Edit2, Check, X, TrendingUp, Home, Plus, Trash2, Coffee, Bell, Pin, Send } from "lucide-react"
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount)
@@ -33,6 +33,21 @@ interface RoomData {
   amenities: string | null; isAvailable: boolean
 }
 
+interface NotifData {
+  id: string; title: string; content: string; targetRoles: string
+  isPinned: boolean; isActive: boolean; createdAt: string
+}
+
+const TARGET_ROLES = [
+  { value: "ALL", label: "Tất cả thành viên" },
+  { value: "MEMBER", label: "Thành viên thường" },
+  { value: "VIP", label: "VIP" },
+  { value: "SHAREHOLDER", label: "Cổ đông" },
+  { value: "ADMIN", label: "Admin" },
+]
+
+const emptyNotif: Partial<NotifData> = { title: "", content: "", targetRoles: "ALL", isPinned: false, isActive: true }
+
 interface ServiceData {
   id: string; name: string; description: string | null; icon: string | null
   price: number; priceUnit: string; category: string; isActive: boolean; sortOrder: number
@@ -52,11 +67,14 @@ const emptyService: Partial<ServiceData> = { name: "", description: "", icon: ""
 export default function AdminPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const [tab, setTab] = useState<"users" | "bookings" | "rooms" | "services">("users")
+  const [tab, setTab] = useState<"users" | "bookings" | "rooms" | "services" | "notifications">("users")
   const [users, setUsers] = useState<UserData[]>([])
   const [bookings, setBookings] = useState<BookingData[]>([])
   const [rooms, setRooms] = useState<RoomData[]>([])
   const [services, setServices] = useState<ServiceData[]>([])
+  const [notifications, setNotifications] = useState<NotifData[]>([])
+  const [editingNotif, setEditingNotif] = useState<Partial<NotifData> | null>(null)
+  const [isNewNotif, setIsNewNotif] = useState(false)
   const [search, setSearch] = useState("")
   const [editingUser, setEditingUser] = useState<UserData | null>(null)
   const [editValues, setEditValues] = useState<Partial<UserData>>({})
@@ -78,6 +96,7 @@ export default function AdminPage() {
     fetch("/api/bookings").then(r => r.json()).then(setBookings)
     fetch("/api/admin/rooms").then(r => r.json()).then(setRooms)
     fetch("/api/admin/services").then(r => r.json()).then(setServices)
+    fetch("/api/admin/notifications").then(r => r.json()).then(setNotifications)
   }, [])
 
   const filteredUsers = users.filter(u =>
@@ -140,6 +159,25 @@ export default function AdminPage() {
     setEditingService(null); setLoading(false)
   }
 
+  const saveNotif = async () => {
+    if (!editingNotif) return
+    setLoading(true)
+    if (isNewNotif) {
+      const res = await fetch("/api/admin/notifications", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(editingNotif) })
+      if (res.ok) { const n = await res.json(); setNotifications([n, ...notifications]) }
+    } else {
+      const res = await fetch(`/api/admin/notifications/${(editingNotif as NotifData).id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(editingNotif) })
+      if (res.ok) { const n = await res.json(); setNotifications(notifications.map(x => x.id === n.id ? n : x)) }
+    }
+    setEditingNotif(null); setLoading(false)
+  }
+
+  const deleteNotif = async (id: string) => {
+    if (!confirm("Xóa thông báo này?")) return
+    await fetch(`/api/admin/notifications/${id}`, { method: "DELETE" })
+    setNotifications(notifications.filter(n => n.id !== id))
+  }
+
   const deleteService = async (id: string) => {
     if (!confirm("Xóa dịch vụ này?")) return
     await fetch(`/api/admin/services/${id}`, { method: "DELETE" })
@@ -190,6 +228,7 @@ export default function AdminPage() {
             { key: "bookings", label: `Đặt Phòng (${bookings.length})`, icon: Calendar },
             { key: "rooms", label: `Phòng (${rooms.length})`, icon: Home },
             { key: "services", label: `Dịch Vụ (${services.length})`, icon: Coffee },
+            { key: "notifications", label: `Thông Báo (${notifications.length})`, icon: Bell },
           ] as const).map(t => (
             <button
               key={t.key}
@@ -372,6 +411,52 @@ export default function AdminPage() {
         )}
       </div>
 
+      {/* Notifications Tab */}
+      {tab === "notifications" && (
+        <div>
+          <div className="flex justify-end mb-4">
+            <button onClick={() => { setIsNewNotif(true); setEditingNotif({ ...emptyNotif }) }} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white font-medium text-sm" style={{ backgroundColor: '#2d6a4f' }}>
+              <Plus className="w-4 h-4" /> Tạo Thông Báo
+            </button>
+          </div>
+          <div className="space-y-3">
+            {notifications.length === 0 && (
+              <div className="py-16 text-center text-gray-400">
+                <Bell className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <p>Chưa có thông báo nào. Nhấn "Tạo Thông Báo" để bắt đầu.</p>
+              </div>
+            )}
+            {notifications.map(n => (
+              <div key={n.id} className={`bg-white rounded-2xl p-5 shadow-sm border ${n.isPinned ? 'border-amber-200' : 'border-gray-100'}`}>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      {n.isPinned && <Pin className="w-3.5 h-3.5 text-amber-500" />}
+                      <h3 className="font-bold text-gray-900">{n.title}</h3>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                        n.targetRoles === "ALL" ? "bg-blue-100 text-blue-700" :
+                        n.targetRoles === "SHAREHOLDER" ? "bg-purple-100 text-purple-700" :
+                        n.targetRoles === "VIP" ? "bg-yellow-100 text-yellow-700" :
+                        "bg-gray-100 text-gray-600"
+                      }`}>
+                        {TARGET_ROLES.find(r => r.value === n.targetRoles)?.label || n.targetRoles}
+                      </span>
+                      {!n.isActive && <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600">Đã ẩn</span>}
+                    </div>
+                    <p className="text-sm text-gray-600 whitespace-pre-wrap">{n.content}</p>
+                    <p className="text-xs text-gray-400 mt-2">{formatDate(n.createdAt)}</p>
+                  </div>
+                  <div className="flex gap-1.5 shrink-0">
+                    <button onClick={() => { setIsNewNotif(false); setEditingNotif({ ...n }) }} className="p-2 rounded-lg hover:bg-gray-50 text-gray-400 hover:text-green-700"><Edit2 className="w-4 h-4" /></button>
+                    <button onClick={() => deleteNotif(n.id)} className="p-2 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Edit User Modal */}
       {editingUser && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -434,6 +519,56 @@ export default function AdminPage() {
             <div className="flex gap-3 mt-6">
               <button onClick={saveRoom} disabled={loading} className="flex-1 py-2.5 rounded-xl text-white font-medium text-sm" style={{ backgroundColor: '#2d6a4f' }}>{loading ? 'Lưu...' : isNewRoom ? 'Tạo Phòng' : 'Lưu Thay Đổi'}</button>
               <button onClick={() => setEditingRoom(null)} className="flex-1 py-2.5 rounded-xl font-medium text-sm border border-gray-200 text-gray-700">Hủy</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Notification Modal */}
+      {editingNotif && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Bell className="w-5 h-5" style={{ color: '#2d6a4f' }} />
+              {isNewNotif ? 'Tạo Thông Báo Mới' : 'Chỉnh Sửa Thông Báo'}
+            </h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tiêu đề</label>
+                <input value={editingNotif.title || ""} onChange={e => setEditingNotif({ ...editingNotif, title: e.target.value })} className={inputCls} placeholder="Thông báo quan trọng..." />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nội dung</label>
+                <textarea rows={5} value={editingNotif.content || ""} onChange={e => setEditingNotif({ ...editingNotif, content: e.target.value })} className={inputCls + " resize-none"} placeholder="Nội dung thông báo chi tiết..." />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Gửi đến</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {TARGET_ROLES.map(r => (
+                    <label key={r.value} className={`flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition-colors ${editingNotif.targetRoles === r.value ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:bg-gray-50'}`}>
+                      <input type="radio" name="targetRoles" value={r.value} checked={editingNotif.targetRoles === r.value} onChange={() => setEditingNotif({ ...editingNotif, targetRoles: r.value })} className="accent-green-700" />
+                      <span className="text-sm font-medium text-gray-700">{r.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input type="checkbox" checked={editingNotif.isPinned || false} onChange={e => setEditingNotif({ ...editingNotif, isPinned: e.target.checked })} className="w-4 h-4 accent-amber-500" />
+                  <Pin className="w-3.5 h-3.5 text-amber-500" />
+                  <span className="text-gray-700">Ghim lên đầu</span>
+                </label>
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input type="checkbox" checked={editingNotif.isActive !== false} onChange={e => setEditingNotif({ ...editingNotif, isActive: e.target.checked })} className="w-4 h-4 accent-green-700" />
+                  <span className="text-gray-700">Hiển thị</span>
+                </label>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button onClick={saveNotif} disabled={loading || !editingNotif.title || !editingNotif.content} className="flex-1 py-2.5 rounded-xl text-white font-medium text-sm flex items-center justify-center gap-2 disabled:opacity-50" style={{ backgroundColor: '#2d6a4f' }}>
+                <Send className="w-4 h-4" /> {loading ? 'Đang gửi...' : isNewNotif ? 'Gửi Thông Báo' : 'Lưu Thay Đổi'}
+              </button>
+              <button onClick={() => setEditingNotif(null)} className="flex-1 py-2.5 rounded-xl font-medium text-sm border border-gray-200 text-gray-700">Hủy</button>
             </div>
           </div>
         </div>
