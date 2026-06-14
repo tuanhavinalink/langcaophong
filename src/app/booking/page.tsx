@@ -283,15 +283,15 @@ export default function BookingPage() {
                 <div className="space-y-2 text-sm">
                   <div className="font-medium text-gray-900">{selectedRoom.name} × {roomQty}</div>
                   {nights > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">{roomQty} phòng × {nights} đêm × {formatCurrency(selectedRoom.pricePerNight)}</span>
-                      <span className="font-medium">{formatCurrency(basePrice)}</span>
+                    <div className="flex justify-between items-baseline">
+                      <span className="font-semibold text-gray-800">{roomQty} phòng × {nights} đêm × {formatCurrency(selectedRoom.pricePerNight)}</span>
+                      <span className="font-bold text-gray-900">{formatCurrency(basePrice)}</span>
                     </div>
                   )}
                   {tipWcBedding > 0 && (
-                    <div className="flex justify-between text-gray-600">
-                      <span>🛁 Tip WC + ga gối ({roomQty} phòng)</span>
-                      <span>{formatCurrency(tipWcBedding)}</span>
+                    <div className="flex justify-between items-baseline">
+                      <span className="text-xs text-gray-400">🛁 Tip WC + ga gối ({roomQty} phòng)</span>
+                      <span className="text-xs text-gray-400">{formatCurrency(tipWcBedding)}</span>
                     </div>
                   )}
                   {services.filter(s => selectedServices.has(s.id)).map(svc => (
