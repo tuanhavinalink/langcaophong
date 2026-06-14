@@ -290,7 +290,7 @@ export default function HomePage() {
           </div>
           <div className="rounded-2xl overflow-hidden shadow-xl border-4 border-white">
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d238623.77032882893!2d105.24!3d20.72!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3134fac5bfe1b759%3A0x4052086b67a9ea34!2sCao%20Phong%2C%20H%C3%B2a%20B%C3%ACnh!5e0!3m2!1svi!2svn!4v1700000000000"
+              src="https://www.google.com/maps?q=20.72256646707079,105.29194378227785&z=15&output=embed"
               width="100%"
               height="400"
               style={{ border: 0 }}
