@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { Users, Calendar, Search, Edit2, Check, X, TrendingUp, Home, Plus, Trash2, Coffee, Bell, Pin, Send } from "lucide-react"
+import { Users, Calendar, Search, Edit2, Check, X, TrendingUp, Home, Plus, Trash2, Coffee, Bell, Pin, Send, BookOpen } from "lucide-react"
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount)
@@ -31,6 +31,12 @@ interface RoomData {
   id: string; name: string; type: string; capacity: number
   pricePerNight: number; tipService: number; tipWcBedding: number; totalUnits: number; description: string | null
   amenities: string | null; isAvailable: boolean
+}
+
+interface EnrollData {
+  id: string; status: string; paidPrice: number; scheduleDate: string | null; createdAt: string
+  course: { name: string; slug: string }
+  user: { name: string | null; email: string; phone: string | null }
 }
 
 interface NotifData {
@@ -67,12 +73,13 @@ const emptyService: Partial<ServiceData> = { name: "", description: "", icon: ""
 export default function AdminPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const [tab, setTab] = useState<"users" | "bookings" | "rooms" | "services" | "notifications">("users")
+  const [tab, setTab] = useState<"users" | "bookings" | "rooms" | "services" | "notifications" | "courses">("users")
   const [users, setUsers] = useState<UserData[]>([])
   const [bookings, setBookings] = useState<BookingData[]>([])
   const [rooms, setRooms] = useState<RoomData[]>([])
   const [services, setServices] = useState<ServiceData[]>([])
   const [notifications, setNotifications] = useState<NotifData[]>([])
+  const [enrollments, setEnrollments] = useState<EnrollData[]>([])
   const [editingNotif, setEditingNotif] = useState<Partial<NotifData> | null>(null)
   const [isNewNotif, setIsNewNotif] = useState(false)
   const [search, setSearch] = useState("")
@@ -97,6 +104,7 @@ export default function AdminPage() {
     fetch("/api/admin/rooms").then(r => r.json()).then(setRooms)
     fetch("/api/admin/services").then(r => r.json()).then(setServices)
     fetch("/api/admin/notifications").then(r => r.json()).then(setNotifications)
+    fetch("/api/courses/enroll").then(r => r.json()).then(setEnrollments)
   }, [])
 
   const filteredUsers = users.filter(u =>
@@ -157,6 +165,11 @@ export default function AdminPage() {
       if (res.ok) { const svc = await res.json(); setServices(services.map(s => s.id === svc.id ? svc : s)) }
     }
     setEditingService(null); setLoading(false)
+  }
+
+  const updateEnrollStatus = async (enrollmentId: string, status: string) => {
+    await fetch("/api/courses/enroll", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enrollmentId, status }) })
+    setEnrollments(enrollments.map(e => e.id === enrollmentId ? { ...e, status } : e))
   }
 
   const saveNotif = async () => {
@@ -228,6 +241,7 @@ export default function AdminPage() {
             { key: "bookings", label: `Đặt Phòng (${bookings.length})`, icon: Calendar },
             { key: "rooms", label: `Phòng (${rooms.length})`, icon: Home },
             { key: "services", label: `Dịch Vụ (${services.length})`, icon: Coffee },
+            { key: "courses", label: `Khóa Học (${enrollments.length})`, icon: BookOpen },
             { key: "notifications", label: `Thông Báo (${notifications.length})`, icon: Bell },
           ] as const).map(t => (
             <button
@@ -410,6 +424,58 @@ export default function AdminPage() {
           </div>
         )}
       </div>
+
+      {/* Courses Tab */}
+      {tab === "courses" && (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr style={{ backgroundColor: '#f0fdf4' }}>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">Học viên</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">Khóa học</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">Ngày mong muốn</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">Học phí</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">Trạng thái</th>
+                  <th className="px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {enrollments.length === 0 && (
+                  <tr><td colSpan={6} className="text-center py-12 text-gray-400"><BookOpen className="w-10 h-10 mx-auto mb-2 opacity-30" /><p>Chưa có đăng ký khóa học nào</p></td></tr>
+                )}
+                {enrollments.map(e => (
+                  <tr key={e.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-gray-900 text-sm">{e.user.name || '—'}</div>
+                      <div className="text-xs text-gray-500">{e.user.phone || e.user.email}</div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{e.course.name}</td>
+                    <td className="px-4 py-3 text-xs text-gray-500">{e.scheduleDate ? formatDate(e.scheduleDate) : '—'}</td>
+                    <td className="px-4 py-3 text-sm font-bold" style={{ color: '#2d6a4f' }}>{e.paidPrice === 0 ? 'Miễn phí' : formatCurrency(e.paidPrice)}</td>
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[e.status] || 'bg-gray-100 text-gray-600'}`}>{statusLabels[e.status] || e.status}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-1">
+                        {e.status === "ENROLLED" && (
+                          <>
+                            <button onClick={() => updateEnrollStatus(e.id, "CONFIRMED")} className="p-1.5 rounded-lg bg-green-50 text-green-600 hover:bg-green-100" title="Xác nhận"><Check className="w-3.5 h-3.5" /></button>
+                            <button onClick={() => updateEnrollStatus(e.id, "CANCELLED")} className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100" title="Hủy"><X className="w-3.5 h-3.5" /></button>
+                          </>
+                        )}
+                        {e.status === "CONFIRMED" && (
+                          <button onClick={() => updateEnrollStatus(e.id, "COMPLETED")} className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs font-medium px-2">Hoàn thành</button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Notifications Tab */}
       {tab === "notifications" && (

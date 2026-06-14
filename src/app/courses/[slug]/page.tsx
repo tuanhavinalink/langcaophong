@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma"
+import { auth } from "@/lib/auth"
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { Clock, Users, Star, Check, BookOpen, ArrowLeft, User, ExternalLink, Gift } from "lucide-react"
+import { Clock, Users, Star, Check, BookOpen, ArrowLeft, User, Gift } from "lucide-react"
+import EnrollButton from "@/components/EnrollButton"
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount)
@@ -15,17 +17,29 @@ const gradients: Record<string, string> = {
 
 export default async function CoursePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
+  const session = await auth()
+  const userId = session?.user ? (session.user as any).id : null
+
   const course = await prisma.course.findUnique({ where: { slug } })
   if (!course) notFound()
 
   const benefits: string[] = course.benefits ? JSON.parse(course.benefits) : []
   const curriculum: string[] = course.curriculum ? JSON.parse(course.curriculum) : []
   const scheduleData = course.schedule ? JSON.parse(course.schedule) : null
-  const registerUrl = scheduleData?.registerUrl || null
   const registerOptions = scheduleData?.options || []
+
+  const existingEnrollment = userId
+    ? await prisma.courseEnrollment.findFirst({ where: { userId, courseId: course.id } })
+    : null
+
+  const user = userId ? await prisma.user.findUnique({ where: { id: userId }, select: { freeCoursesLeft: true, courseDiscount: true } }) : null
 
   const gradient = gradients[slug] || "from-green-500 to-emerald-600"
   const discount = course.originalPrice ? Math.round((1 - course.price / course.originalPrice) * 100) : 0
+
+  let finalPrice = course.price
+  if (user?.freeCoursesLeft && user.freeCoursesLeft > 0) finalPrice = 0
+  else if (user?.courseDiscount && user.courseDiscount > 0) finalPrice = Math.round(course.price * (1 - user.courseDiscount))
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -61,12 +75,29 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
             <div className="bg-white rounded-2xl p-6 shadow-xl">
               <div className="text-center mb-5">
                 <p className="text-gray-500 text-sm mb-1">Học phí ăn ở tại Làng</p>
-                <div className="text-4xl font-bold mb-1" style={{ color: '#2d6a4f' }}>{formatCurrency(course.price)}</div>
-                {course.originalPrice && (
-                  <div className="flex items-center justify-center gap-2">
-                    <span className="text-gray-400 line-through text-lg">{formatCurrency(course.originalPrice)}</span>
-                    <span className="px-2 py-0.5 bg-red-100 text-red-600 text-sm rounded-lg font-medium">-{discount}%</span>
-                  </div>
+                {finalPrice < course.price ? (
+                  <>
+                    <div className="text-4xl font-bold mb-1" style={{ color: '#2d6a4f' }}>
+                      {finalPrice === 0 ? 'Miễn phí' : formatCurrency(finalPrice)}
+                    </div>
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-gray-400 line-through text-lg">{formatCurrency(course.price)}</span>
+                      {finalPrice === 0
+                        ? <span className="px-2 py-0.5 bg-green-100 text-green-700 text-sm rounded-lg font-medium">Khóa học miễn phí</span>
+                        : <span className="px-2 py-0.5 bg-red-100 text-red-600 text-sm rounded-lg font-medium">-{Math.round(((course.price - finalPrice) / course.price) * 100)}%</span>
+                      }
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-4xl font-bold mb-1" style={{ color: '#2d6a4f' }}>{formatCurrency(course.price)}</div>
+                    {course.originalPrice && (
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="text-gray-400 line-through text-lg">{formatCurrency(course.originalPrice)}</span>
+                        <span className="px-2 py-0.5 bg-red-100 text-red-600 text-sm rounded-lg font-medium">-{discount}%</span>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
 
@@ -84,25 +115,13 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
                 </div>
               )}
 
-              {registerUrl ? (
-                <a
-                  href={registerUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full py-4 rounded-xl text-white font-semibold text-lg mb-3 transition-all hover:opacity-90"
-                  style={{ backgroundColor: '#2d6a4f' }}
-                >
-                  Đăng Ký Ngay <ExternalLink className="w-5 h-5" />
-                </a>
-              ) : (
-                <Link
-                  href="/booking"
-                  className="block w-full text-center py-4 rounded-xl text-white font-semibold text-lg mb-3 transition-all hover:opacity-90"
-                  style={{ backgroundColor: '#2d6a4f' }}
-                >
-                  Đặt Phòng Kết Hợp
-                </Link>
-              )}
+              <EnrollButton
+                courseId={course.id}
+                courseName={course.name}
+                isLoggedIn={!!userId}
+                existingEnrollment={existingEnrollment ? { id: existingEnrollment.id, status: existingEnrollment.status } : null}
+                finalPrice={finalPrice}
+              />
 
               <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
                 <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -127,13 +146,10 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-2 space-y-8">
-
-            {/* Benefits */}
             {benefits.length > 0 && (
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                 <h2 className="text-2xl font-bold text-gray-900 mb-5 flex items-center gap-2">
-                  <Gift className="w-6 h-6" style={{ color: '#2d6a4f' }} />
-                  Bạn Sẽ Nhận Được
+                  <Gift className="w-6 h-6" style={{ color: '#2d6a4f' }} /> Bạn Sẽ Nhận Được
                 </h2>
                 <div className="grid sm:grid-cols-2 gap-3">
                   {benefits.map((b, i) => (
@@ -148,36 +164,27 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
               </div>
             )}
 
-            {/* Curriculum */}
             {curriculum.length > 0 && (
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                 <h2 className="text-2xl font-bold text-gray-900 mb-5 flex items-center gap-2">
-                  <BookOpen className="w-6 h-6" style={{ color: '#2d6a4f' }} />
-                  Chương Trình
+                  <BookOpen className="w-6 h-6" style={{ color: '#2d6a4f' }} /> Chương Trình
                 </h2>
                 <div className="space-y-3">
                   {curriculum.map((item, i) => (
                     <div key={i} className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 hover:border-green-200 transition-colors">
-                      <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style={{ backgroundColor: '#2d6a4f' }}>
-                        {i + 1}
-                      </div>
-                      <div className="pt-1">
-                        <span className="text-gray-800 font-medium leading-relaxed">{item}</span>
-                      </div>
+                      <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style={{ backgroundColor: '#2d6a4f' }}>{i + 1}</div>
+                      <div className="pt-1"><span className="text-gray-800 font-medium leading-relaxed">{item}</span></div>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Location info */}
             <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-6 border border-blue-100">
-              <h2 className="text-xl font-bold text-gray-900 mb-3 flex items-center gap-2">
-                📍 Địa Điểm Tổ Chức
-              </h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-3 flex items-center gap-2">📍 Địa Điểm Tổ Chức</h2>
               <p className="text-gray-700 font-semibold text-lg mb-1">Làng Cao Phong - Hòa Bình</p>
               <p className="text-gray-600 text-sm">Cách Hà Nội 80km • Giữa sông, núi và hồ trong thung lũng</p>
-              <div className="mt-3 flex gap-3 text-sm">
+              <div className="mt-3 flex gap-3 text-sm flex-wrap">
                 <span className="px-3 py-1.5 bg-white rounded-full text-gray-700 border border-blue-100">🌿 Không khí trong lành</span>
                 <span className="px-3 py-1.5 bg-white rounded-full text-gray-700 border border-blue-100">🏡 Bungalow & Glamping</span>
                 <span className="px-3 py-1.5 bg-white rounded-full text-gray-700 border border-blue-100">🍽️ Ăn sạch tại chỗ</span>
@@ -185,61 +192,19 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
             </div>
           </div>
 
-          {/* Sidebar */}
           <div className="space-y-4">
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
               <h3 className="font-bold text-gray-900 mb-4">Thông Tin Khóa Học</h3>
               <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Thời lượng</span>
-                  <span className="font-medium text-gray-900">{course.duration}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Sĩ số</span>
-                  <span className="font-medium text-gray-900">{course.maxStudents} người</span>
-                </div>
-                {course.instructor && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Giảng viên</span>
-                    <span className="font-medium text-gray-900 text-right max-w-[140px]">{course.instructor}</span>
-                  </div>
-                )}
-                <div className="flex justify-between border-t pt-3">
-                  <span className="text-gray-500">Học phí</span>
-                  <span className="font-bold text-lg" style={{ color: '#2d6a4f' }}>{formatCurrency(course.price)}</span>
-                </div>
+                <div className="flex justify-between"><span className="text-gray-500">Thời lượng</span><span className="font-medium text-gray-900">{course.duration}</span></div>
+                <div className="flex justify-between"><span className="text-gray-500">Sĩ số</span><span className="font-medium text-gray-900">{course.maxStudents} người</span></div>
+                {course.instructor && <div className="flex justify-between"><span className="text-gray-500">Giảng viên</span><span className="font-medium text-gray-900 text-right max-w-[140px]">{course.instructor}</span></div>}
+                <div className="flex justify-between border-t pt-3"><span className="text-gray-500">Học phí</span><span className="font-bold text-lg" style={{ color: '#2d6a4f' }}>{formatCurrency(course.price)}</span></div>
               </div>
             </div>
 
-            {/* CTA */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-              <h3 className="font-bold text-gray-900 mb-2">Đăng Ký Ngay</h3>
-              <p className="text-sm text-gray-500 mb-4">Điền form để đặt chỗ. Số lượng giới hạn!</p>
-              {registerUrl && (
-                <a
-                  href={registerUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-white font-semibold mb-3 transition-all hover:opacity-90"
-                  style={{ backgroundColor: '#2d6a4f' }}
-                >
-                  Điền Form Đăng Ký <ExternalLink className="w-4 h-4" />
-                </a>
-              )}
-              <a
-                href="https://zalo.me/0900000000"
-                className="block w-full text-center py-3 rounded-xl font-medium border-2 transition-colors hover:bg-green-50 text-sm"
-                style={{ borderColor: '#2d6a4f', color: '#2d6a4f' }}
-              >
-                💬 Tư vấn qua Zalo
-              </a>
-            </div>
-
-            {/* Star rating */}
             <div className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-2xl p-4 border border-yellow-100 text-center">
-              <div className="flex justify-center gap-1 mb-2">
-                {[1,2,3,4,5].map(i => <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />)}
-              </div>
+              <div className="flex justify-center gap-1 mb-2">{[1,2,3,4,5].map(i => <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />)}</div>
               <p className="text-sm font-semibold text-gray-800">4.9/5 từ học viên</p>
               <p className="text-xs text-gray-500 mt-1">"Thay đổi cách nhìn hoàn toàn về đầu tư"</p>
             </div>
