@@ -29,7 +29,7 @@ interface BookingData {
 
 interface RoomData {
   id: string; name: string; type: string; capacity: number
-  pricePerNight: number; tipService: number; description: string | null
+  pricePerNight: number; tipService: number; tipWcBedding: number; description: string | null
   amenities: string | null; isAvailable: boolean
 }
 
@@ -45,7 +45,7 @@ const PRICE_UNIT_LABELS: Record<string, string> = {
   night: "đ/đêm",
 }
 
-const emptyRoom: Partial<RoomData> = { name: "", type: "BUNGALOW", capacity: 2, pricePerNight: 0, tipService: 50000, description: "", isAvailable: true }
+const emptyRoom: Partial<RoomData> = { name: "", type: "BUNGALOW", capacity: 2, pricePerNight: 0, tipService: 50000, tipWcBedding: 0, description: "", isAvailable: true }
 const emptyService: Partial<ServiceData> = { name: "", description: "", icon: "", price: 0, priceUnit: "booking", category: "food", isActive: true, sortOrder: 0 }
 
 export default function AdminPage() {
@@ -419,7 +419,8 @@ export default function AdminPage() {
                   </select>
                 </div>
                 <div><label className="block text-sm font-medium text-gray-700 mb-1">Sức chứa (người)</label><input type="number" min="1" value={editingRoom.capacity || 2} onChange={e => setEditingRoom({ ...editingRoom, capacity: Number(e.target.value) })} className={inputCls} /></div>
-                <div className="col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Giá/đêm (đ)</label><input type="number" min="0" value={editingRoom.pricePerNight || 0} onChange={e => setEditingRoom({ ...editingRoom, pricePerNight: Number(e.target.value) })} className={inputCls} /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Giá/đêm (đ)</label><input type="number" min="0" value={editingRoom.pricePerNight || 0} onChange={e => setEditingRoom({ ...editingRoom, pricePerNight: Number(e.target.value) })} className={inputCls} /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Phí Tip WC + ga gối (đ)</label><input type="number" min="0" value={editingRoom.tipWcBedding || 0} onChange={e => setEditingRoom({ ...editingRoom, tipWcBedding: Number(e.target.value) })} className={inputCls} placeholder="0" /></div>
               </div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Mô tả</label><textarea rows={2} value={editingRoom.description || ""} onChange={e => setEditingRoom({ ...editingRoom, description: e.target.value })} className={inputCls + " resize-none"} /></div>
               <div><label className="block text-sm font-medium text-gray-700 mb-1">Tiện nghi (cách nhau bằng dấu phẩy)</label><input value={editingRoom.amenities || ""} onChange={e => setEditingRoom({ ...editingRoom, amenities: e.target.value })} className={inputCls} placeholder="WiFi, Điều hòa, Bồn tắm ngoài trời" /></div>

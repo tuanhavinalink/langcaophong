@@ -66,6 +66,7 @@ model Room {
   capacity    Int
   pricePerNight Float
   tipService  Float    @default(50000)
+  tipWcBedding Float   @default(0)
   description String?
   images      String?
   amenities   String?
