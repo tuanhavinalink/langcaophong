@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import {
-  User, Calendar, BookOpen, Star, Crown, Home
+  User, Calendar, BookOpen, Star, Crown, Home, Settings
 } from "lucide-react"
 import AffiliateCard from "@/components/AffiliateCard"
 
@@ -121,6 +121,11 @@ export default async function DashboardPage() {
             )}
 
             <div className="space-y-2">
+              {user.role === "ADMIN" && (
+                <Link href="/admin" className="flex items-center gap-2 w-full px-4 py-3 rounded-xl text-white font-medium text-sm bg-red-600 hover:bg-red-700">
+                  <Settings className="w-4 h-4" /> Quản Trị Admin
+                </Link>
+              )}
               <Link href="/booking" className="flex items-center gap-2 w-full px-4 py-3 rounded-xl text-white font-medium text-sm" style={{ backgroundColor: '#2d6a4f' }}>
                 <Home className="w-4 h-4" /> Đặt Phòng Mới
               </Link>
