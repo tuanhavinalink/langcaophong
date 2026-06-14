@@ -6,17 +6,6 @@ import {
   BookOpen, Leaf, Brain
 } from "lucide-react"
 
-const facilities = [
-  { icon: DoorOpen, name: "Cổng Vào", desc: "Cổng chào đón rợp bóng cây xanh, không gian thiên nhiên ngay từ lối vào" },
-  { icon: Car, name: "Bãi Đỗ Xe", desc: "Bãi đỗ xe rộng rãi, có mái che, sức chứa 30+ xe ô tô" },
-  { icon: Home, name: "Nhà Trung Tâm", desc: "Trung tâm điều hành, reception và không gian chờ đón tiếp khách" },
-  { icon: Utensils, name: "Nhà Hàng", desc: "Nhà hàng ẩm thực vùng cao, phục vụ các món đặc sản Hòa Bình và ẩm thực dưỡng sinh" },
-  { icon: Tent, name: "Khu Glamping (6 Lều)", desc: "6 lều glamping cao cấp view hồ, trải nghiệm thiên nhiên với đầy đủ tiện nghi" },
-  { icon: Home, name: "Khu Bungalow (16 Phòng)", desc: "16 phòng bungalow view núi và sông, không gian riêng tư, ấm cúng" },
-  { icon: Dumbbell, name: "Khu Tiện Ích (Hồ Bơi & Café)", desc: "Hồ bơi vô cực view thung lũng, café sân vườn, khu vui chơi trẻ em" },
-  { icon: Anchor, name: "Bến Thuyền / Kayak", desc: "Bến thuyền trên hồ, cho thuê kayak, câu cá và các hoạt động thủy trên hồ" },
-  { icon: Building2, name: "Khu Villa Song Lập", desc: "2 villa cao cấp liền kề, lý tưởng cho gia đình lớn hoặc nhóm bạn thân" },
-]
 
 const courses = [
   {
@@ -106,7 +95,7 @@ export default function HomePage() {
               Đặt Phòng Ngay
             </Link>
             <Link
-              href="#facilities"
+              href="#courses"
               className="px-8 py-4 rounded-full font-semibold text-lg border-2 border-white/70 text-white hover:bg-white/20 transition-all"
             >
               Khám Phá Làng
@@ -206,47 +195,6 @@ export default function HomePage() {
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-2">{item.title}</h3>
                 <p className="text-sm text-gray-600">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Facilities */}
-      <section id="facilities" className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium mb-4 text-green-800 bg-green-100">
-              <Home className="w-4 h-4" />
-              Khu Vực & Tiện Ích
-            </div>
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Sơ Đồ <span style={{ color: '#2d6a4f' }}>Làng Cao Phong</span>
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Toàn bộ khu nghỉ dưỡng rộng lớn với đầy đủ tiện ích, không gian xanh và các khu nghỉ ngơi chất lượng cao
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {facilities.map((facility, idx) => (
-              <div
-                key={facility.name}
-                className="group p-6 rounded-2xl border border-gray-100 shadow-sm card-hover"
-                style={{ backgroundColor: idx % 2 === 0 ? '#f9fafb' : 'white' }}
-              >
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform" style={{ backgroundColor: '#d1fae5' }}>
-                    <facility.icon className="w-6 h-6" style={{ color: '#2d6a4f' }} />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-bold text-gray-400">#{String(idx + 1).padStart(2, '0')}</span>
-                      <h3 className="font-semibold text-gray-900">{facility.name}</h3>
-                    </div>
-                    <p className="text-sm text-gray-600 leading-relaxed">{facility.desc}</p>
-                  </div>
-                </div>
               </div>
             ))}
           </div>
