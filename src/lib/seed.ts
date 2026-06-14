@@ -1,10 +1,9 @@
+import "dotenv/config"
 import { PrismaClient } from "@prisma/client"
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3"
+import { PrismaPg } from "@prisma/adapter-pg"
 import bcrypt from "bcryptjs"
-import path from "path"
 
-const dbPath = path.join(process.cwd(), "prisma", "dev.db")
-const adapter = new PrismaBetterSqlite3({ url: `file:${dbPath}` })
+const adapter = new PrismaPg({ connectionString: process.env.DIRECT_URL! })
 const prisma = new PrismaClient({ adapter } as any)
 
 async function main() {
@@ -20,7 +19,7 @@ async function main() {
       role: "ADMIN",
     }
   })
-  console.log("Admin created")
+  console.log("✅ Admin created")
 
   const roomTypes = [
     { id: "bungalow_01", name: "Bungalow 01", type: "BUNGALOW", capacity: 2, pricePerNight: 800000, tipService: 50000, description: "Phòng bungalow view núi, thoáng mát" },
@@ -39,7 +38,7 @@ async function main() {
       create: room
     })
   }
-  console.log("Rooms created")
+  console.log("✅ Rooms created (7 phòng)")
 
   const courses = [
     {
@@ -90,9 +89,8 @@ async function main() {
       create: course
     })
   }
-  console.log("Courses created")
-
-  console.log("Seed completed!")
+  console.log("✅ Courses created (3 khóa học)")
+  console.log("🎉 Seed hoàn thành!")
 }
 
 main().catch(console.error).finally(() => prisma.$disconnect())
