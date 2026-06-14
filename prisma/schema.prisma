@@ -139,6 +139,19 @@ model CourseEnrollment {
   course    Course   @relation(fields: [courseId], references: [id])
 }
 
+model Service {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  icon        String? // emoji hoặc icon name
+  price       Float
+  priceUnit   String  @default("booking") // "booking" | "person_night" | "person" | "night"
+  category    String  @default("food") // "food" | "activity" | "facility"
+  isActive    Boolean @default(true)
+  sortOrder   Int     @default(0)
+  createdAt   DateTime @default(now())
+}
+
 model AffiliateEarning {
   id          String   @id @default(cuid())
   userId      String
