@@ -21,20 +21,20 @@ const courses = [
   {
     slug: "solo",
     name: "Khóa Học SOLO",
-    desc: "Đào tạo Solopreneur - kinh doanh một mình hiệu quả trong thời đại số",
-    duration: "5 ngày 4 đêm",
-    price: 15000000,
-    originalPrice: 20000000,
+    desc: "Mastermind 1-1 đặc quyền cùng Thầy Tuấn Hà (Mentor SharkTank). Học phí tài trợ 100%, chỉ trả chi phí ăn ở tại Làng.",
+    duration: "2 ngày 1 đêm",
+    price: 2300000,
+    originalPrice: null,
     icon: BookOpen,
     color: "from-purple-500 to-pink-500",
   },
   {
     slug: "detox-sam",
     name: "Detox Thân Tâm & Trồng Sâm",
-    desc: "Detox toàn diện thân-tâm-trí, học trồng Sâm Ngọc Linh và ẩm thực dưỡng sinh",
-    duration: "7 ngày 6 đêm",
-    price: 18000000,
-    originalPrice: 25000000,
+    desc: "3 trụ cột Thân Khỏe – Tâm An – Tiền Nhiều. Ăn thực dưỡng Sâm, thiền Gosinga, học trồng Sâm có giá trị kinh tế cao.",
+    duration: "5 ngày 4 đêm",
+    price: 3300000,
+    originalPrice: null,
     icon: Leaf,
     color: "from-green-500 to-emerald-500",
   },
@@ -233,11 +233,15 @@ export default function HomePage() {
                   <div className="flex items-end justify-between mb-4">
                     <div>
                       <div className="text-2xl font-bold" style={{ color: '#95d5b2' }}>{formatCurrency(course.price)}</div>
-                      <div className="text-green-400 line-through text-sm">{formatCurrency(course.originalPrice)}</div>
+                      {course.originalPrice && (
+                        <div className="text-green-400 line-through text-sm">{formatCurrency(course.originalPrice)}</div>
+                      )}
                     </div>
-                    <span className="px-2 py-1 bg-red-500 text-white text-xs rounded-lg font-medium">
-                      -{Math.round((1 - course.price / course.originalPrice) * 100)}%
-                    </span>
+                    {course.originalPrice && (
+                      <span className="px-2 py-1 bg-red-500 text-white text-xs rounded-lg font-medium">
+                        -{Math.round((1 - course.price / course.originalPrice) * 100)}%
+                      </span>
+                    )}
                   </div>
                   <Link
                     href={`/courses/${course.slug}`}
