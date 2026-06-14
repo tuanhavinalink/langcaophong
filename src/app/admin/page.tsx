@@ -43,6 +43,7 @@ const PRICE_UNIT_LABELS: Record<string, string> = {
   person_night: "đ/người/đêm",
   person: "đ/người",
   night: "đ/đêm",
+  night_unit: "đ/đêm/phòng",
 }
 
 const emptyRoom: Partial<RoomData> = { name: "", type: "BUNGALOW", capacity: 2, pricePerNight: 0, tipService: 50000, tipWcBedding: 0, totalUnits: 1, description: "", isAvailable: true }
@@ -458,6 +459,7 @@ export default function AdminPage() {
                     <option value="person_night">đ/người/đêm</option>
                     <option value="person">đ/người</option>
                     <option value="night">đ/đêm</option>
+                    <option value="night_unit">đ/đêm/phòng</option>
                   </select>
                 </div>
                 <div>

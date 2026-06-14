@@ -19,20 +19,22 @@ interface Service {
   price: number; priceUnit: string; category: string
 }
 
-function calcServicePrice(svc: Service, guests: number, nights: number): number {
+function calcServicePrice(svc: Service, guests: number, nights: number, roomQty: number): number {
   switch (svc.priceUnit) {
     case "person_night": return svc.price * guests * nights
     case "person": return svc.price * guests
     case "night": return svc.price * nights
+    case "night_unit": return svc.price * nights * roomQty
     default: return svc.price // "booking"
   }
 }
 
-function priceUnitLabel(svc: Service, guests: number, nights: number): string {
+function priceUnitLabel(svc: Service): string {
   switch (svc.priceUnit) {
     case "person_night": return `${formatCurrency(svc.price)}/người/đêm`
     case "person": return `${formatCurrency(svc.price)}/người`
     case "night": return `${formatCurrency(svc.price)}/đêm`
+    case "night_unit": return `${formatCurrency(svc.price)}/đêm/phòng`
     default: return `${formatCurrency(svc.price)}/lần`
   }
 }
@@ -78,7 +80,7 @@ export default function BookingPage() {
 
   const servicesPrice = services
     .filter(s => selectedServices.has(s.id))
-    .reduce((sum, s) => sum + calcServicePrice(s, guests, nights), 0)
+    .reduce((sum, s) => sum + calcServicePrice(s, guests, nights, roomQty), 0)
 
   const totalPrice = basePrice + tipWcBedding + servicesPrice
 
@@ -258,7 +260,7 @@ export default function BookingPage() {
                               {svc.description && <div className="text-xs text-gray-500">{svc.description}</div>}
                             </div>
                             <div className="text-sm font-semibold text-right" style={{ color: '#2d6a4f' }}>
-                              {priceUnitLabel(svc, guests, nights)}
+                              {priceUnitLabel(svc)}
                             </div>
                           </label>
                         ))}
