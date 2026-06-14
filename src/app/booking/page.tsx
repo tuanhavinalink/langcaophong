@@ -74,12 +74,13 @@ export default function BookingPage() {
     : 0
 
   const basePrice = selectedRoom ? selectedRoom.pricePerNight * nights * roomQty : 0
+  const tipWcBedding = selectedRoom ? selectedRoom.tipWcBedding * roomQty : 0
 
   const servicesPrice = services
     .filter(s => selectedServices.has(s.id))
     .reduce((sum, s) => sum + calcServicePrice(s, guests, nights), 0)
 
-  const totalPrice = basePrice + servicesPrice
+  const totalPrice = basePrice + tipWcBedding + servicesPrice
 
   const toggleService = (id: string) => {
     const next = new Set(selectedServices)
@@ -100,7 +101,7 @@ export default function BookingPage() {
         checkIn, checkOut, guests,
         roomQty,
         selectedServiceIds: Array.from(selectedServices),
-        basePrice, servicesPrice,
+        basePrice, tipWcBedding, servicesPrice,
         notes,
         isFullVillage: false,
       })
@@ -282,6 +283,12 @@ export default function BookingPage() {
                     <div className="flex justify-between">
                       <span className="text-gray-600">{roomQty} phòng × {nights} đêm × {formatCurrency(selectedRoom.pricePerNight)}</span>
                       <span className="font-medium">{formatCurrency(basePrice)}</span>
+                    </div>
+                  )}
+                  {tipWcBedding > 0 && (
+                    <div className="flex justify-between text-gray-600">
+                      <span>🛁 Tip WC + ga gối ({roomQty} phòng)</span>
+                      <span>{formatCurrency(tipWcBedding)}</span>
                     </div>
                   )}
                   {services.filter(s => selectedServices.has(s.id)).map(svc => (
