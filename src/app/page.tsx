@@ -326,9 +326,9 @@ export default function HomePage() {
             </Link>
           </div>
           <div className="mt-8 flex flex-wrap justify-center gap-6 text-green-200 text-sm">
-            <span className="flex items-center gap-1"><Phone className="w-4 h-4" /> 0900 000 000</span>
-            <span className="flex items-center gap-1"><Mail className="w-4 h-4" /> hello@langcaophong.vn</span>
-            <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> Cao Phong, Hòa Bình</span>
+            <span className="flex items-center gap-1"><Phone className="w-4 h-4" /> Hoàng Nga: 0986 655 894</span>
+            <span className="flex items-center gap-1"><Mail className="w-4 h-4" /> langcaophong@gmail.com</span>
+            <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> Xóm Môn, Cao Phong, Hòa Bình</span>
           </div>
         </div>
       </section>

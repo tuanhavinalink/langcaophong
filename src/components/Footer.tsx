@@ -54,15 +54,15 @@ export default function Footer() {
             <ul className="space-y-3">
               <li className="flex items-start gap-2 text-green-200 text-sm">
                 <MapPin className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#95d5b2' }} />
-                <span>Cao Phong, Hòa Bình, Việt Nam (Cách Hà Nội 80km)</span>
+                <span>Xóm Môn, Cao Phong, Hòa Bình (Cách Hà Nội 80km)</span>
               </li>
               <li className="flex items-center gap-2 text-green-200 text-sm">
                 <Phone className="w-4 h-4 shrink-0" style={{ color: '#95d5b2' }} />
-                <a href="tel:0900000000" className="hover:text-white transition-colors">0900 000 000</a>
+                <a href="tel:0986655894" className="hover:text-white transition-colors">Hoàng Nga: 0986 655 894</a>
               </li>
               <li className="flex items-center gap-2 text-green-200 text-sm">
                 <Mail className="w-4 h-4 shrink-0" style={{ color: '#95d5b2' }} />
-                <a href="mailto:hello@langcaophong.vn" className="hover:text-white transition-colors">hello@langcaophong.vn</a>
+                <a href="mailto:langcaophong@gmail.com" className="hover:text-white transition-colors">langcaophong@gmail.com</a>
               </li>
             </ul>
           </div>
