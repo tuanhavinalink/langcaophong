@@ -78,9 +78,14 @@ export default function BookingPage() {
   const basePrice = selectedRoom ? selectedRoom.pricePerNight * nights * roomQty : 0
   const tipWcBedding = selectedRoom ? selectedRoom.tipWcBedding * roomQty : 0
 
+  const hasQty = (priceUnit: string) => priceUnit === "booking" || priceUnit === "person"
+
   const servicesPrice = services
     .filter(s => selectedServices.has(s.id))
-    .reduce((sum, s) => sum + calcServicePrice(s, guests, nights, roomQty) * (selectedServices.get(s.id) || 1), 0)
+    .reduce((sum, s) => {
+      const qty = hasQty(s.priceUnit) ? (selectedServices.get(s.id) || 1) : 1
+      return sum + calcServicePrice(s, guests, nights, roomQty) * qty
+    }, 0)
 
   const totalPrice = basePrice + tipWcBedding + servicesPrice
 
@@ -268,9 +273,9 @@ export default function BookingPage() {
                                 <div className="font-medium text-gray-800 text-sm">{svc.name}</div>
                                 {svc.description && <div className="text-xs text-gray-500">{svc.description}</div>}
                               </div>
-                              {/* Qty stepper */}
+                              {/* Qty stepper — chỉ cho loại booking/person */}
                               <div className="flex items-center gap-1.5 shrink-0">
-                                {checked && (
+                                {checked && hasQty(svc.priceUnit) && (
                                   <>
                                     <button type="button" onClick={() => setServiceQty(svc.id, qty - 1)} className="w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-100 font-bold text-base leading-none">−</button>
                                     <span className="w-6 text-center font-semibold text-gray-900 text-sm">{qty}</span>
@@ -317,7 +322,7 @@ export default function BookingPage() {
                     </div>
                   )}
                   {services.filter(s => selectedServices.has(s.id)).map(svc => {
-                    const qty = selectedServices.get(svc.id) || 1
+                    const qty = hasQty(svc.priceUnit) ? (selectedServices.get(svc.id) || 1) : 1
                     const lineTotal = calcServicePrice(svc, guests, nights, roomQty) * qty
                     return (
                       <div key={svc.id} className="flex justify-between text-gray-600">
