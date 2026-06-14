@@ -90,6 +90,23 @@ export default async function DashboardPage() {
               </div>
 
               <div className="space-y-2 text-sm">
+                {(user.shareAmount > 0 || user.sharePercent > 0) && (
+                  <div className="rounded-xl p-3 mb-1 space-y-1.5" style={{ backgroundColor: '#f5f3ff', border: '1px solid #e9d5ff' }}>
+                    <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#7c3aed' }}>Cổ Phần Làng Cao Phong</div>
+                    {user.shareAmount > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Số tiền đầu tư</span>
+                        <span className="font-bold text-gray-900">{formatCurrency(user.shareAmount)}</span>
+                      </div>
+                    )}
+                    {user.sharePercent > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Tỷ lệ sở hữu</span>
+                        <span className="font-bold" style={{ color: '#7c3aed' }}>{user.sharePercent}%</span>
+                      </div>
+                    )}
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-gray-500">Tổng chi tiêu</span>
                   <span className="font-medium text-gray-900">{formatCurrency(user.totalSpent)}</span>
