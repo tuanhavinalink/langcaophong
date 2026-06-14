@@ -3,9 +3,9 @@ import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import {
-  User, Calendar, BookOpen, Share2, Star, Crown,
-  CheckCircle, Clock, XCircle, Home
+  User, Calendar, BookOpen, Star, Crown, Home
 } from "lucide-react"
+import AffiliateCard from "@/components/AffiliateCard"
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount)
@@ -117,19 +117,7 @@ export default async function DashboardPage() {
 
             {/* Affiliate */}
             {user.affiliateCode && (
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <Share2 className="w-4 h-4" style={{ color: '#2d6a4f' }} /> Mã Giới Thiệu
-                </h3>
-                <div className="p-3 rounded-xl text-center font-mono font-bold text-lg tracking-wider" style={{ backgroundColor: '#d1fae5', color: '#2d6a4f' }}>
-                  {user.affiliateCode}
-                </div>
-                <p className="text-xs text-gray-500 mt-2 text-center">Chia sẻ mã này để nhận hoa hồng</p>
-                <div className="mt-3 flex justify-between text-sm">
-                  <span className="text-gray-500">Số dư hoa hồng</span>
-                  <span className="font-medium" style={{ color: '#2d6a4f' }}>{formatCurrency(user.affiliateBalance)}</span>
-                </div>
-              </div>
+              <AffiliateCard code={user.affiliateCode} balance={user.affiliateBalance} />
             )}
 
             <div className="space-y-2">
