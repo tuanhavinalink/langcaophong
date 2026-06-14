@@ -1,10 +1,21 @@
-import { auth } from "@/lib/auth"
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
+import { getToken } from "next-auth/jwt"
 
-export default auth((req) => {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
-  const isLoggedIn = !!req.auth
 
+  // NextAuth v5 dùng cookie name khác với v4
+  const cookieName = req.url.startsWith("https")
+    ? "__Secure-authjs.session-token"
+    : "authjs.session-token"
+
+  const token = await getToken({
+    req,
+    secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+    cookieName,
+  })
+
+  const isLoggedIn = !!token
   const protectedRoutes = ["/dashboard", "/booking", "/admin"]
   const isProtected = protectedRoutes.some(route => pathname.startsWith(route))
 
@@ -13,14 +24,14 @@ export default auth((req) => {
   }
 
   if (pathname.startsWith("/admin")) {
-    const role = (req.auth?.user as any)?.role
+    const role = (token as any)?.role
     if (role !== "ADMIN") {
       return NextResponse.redirect(new URL("/dashboard", req.url))
     }
   }
 
   return NextResponse.next()
-})
+}
 
 export const config = {
   matcher: ["/dashboard/:path*", "/booking/:path*", "/admin/:path*"]
