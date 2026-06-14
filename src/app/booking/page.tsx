@@ -194,6 +194,9 @@ export default function BookingPage() {
                             <p className="text-sm text-gray-500">Sức chứa: {room.capacity} người/phòng · {room.totalUnits} {room.type === 'GLAMPING' ? 'lều' : 'phòng'} có sẵn</p>
                             {room.description && <p className="text-xs text-gray-400 mt-0.5">{room.description}</p>}
                             <div className="font-bold mt-1" style={{ color: '#2d6a4f' }}>{formatCurrency(room.pricePerNight)}<span className="text-gray-400 font-normal text-xs">/đêm/phòng</span></div>
+                            {room.tipWcBedding > 0 && (
+                              <div className="text-xs text-gray-500 mt-0.5">🛁 Tip WC + ga gối: {formatCurrency(room.tipWcBedding)}/phòng (mặc định)</div>
+                            )}
                           </div>
 
                           {/* Qty selector */}
