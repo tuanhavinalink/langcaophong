@@ -4,16 +4,21 @@ import { getToken } from "next-auth/jwt"
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
-  // NextAuth v5 dùng cookie name khác với v4
-  const cookieName = req.url.startsWith("https")
-    ? "__Secure-authjs.session-token"
-    : "authjs.session-token"
-
-  const token = await getToken({
+  // Try both cookie names - NextAuth v5 uses __Secure- prefix on HTTPS
+  // Vercel internal requests may use HTTP so we try both
+  let token = await getToken({
     req,
     secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
-    cookieName,
+    cookieName: "__Secure-authjs.session-token",
   })
+
+  if (!token) {
+    token = await getToken({
+      req,
+      secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+      cookieName: "authjs.session-token",
+    })
+  }
 
   const isLoggedIn = !!token
   const protectedRoutes = ["/dashboard", "/booking", "/admin"]
