@@ -111,7 +111,16 @@ export default async function DashboardPage() {
     .reduce((sum, b) => sum + b.totalPrice, 0)
 
   const notifications = await prisma.notification.findMany({
-    where: { isActive: true, OR: [{ targetRoles: "ALL" }, { targetRoles: user.role }] },
+    where: {
+      isActive: true,
+      OR: [
+        { targetRoles: "ALL" },
+        { targetRoles: user.role },
+        ...(["SHAREHOLDER_MAIN", "SHAREHOLDER_FOLLOW"].includes(user.role)
+          ? [{ targetRoles: "SHAREHOLDER" }]
+          : []),
+      ]
+    },
     orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
     take: 10,
   })
