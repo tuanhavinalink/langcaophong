@@ -20,12 +20,22 @@ export async function POST(req: Request) {
   ])
   if (!course || !user) return NextResponse.json({ error: "Không tìm thấy dữ liệu" }, { status: 404 })
 
-  let paidPrice = course.price
+  const qty = data.quantity && data.quantity > 0 ? data.quantity : 1
+
+  let unitPrice = course.price
   if (user.freeCoursesLeft > 0) {
-    paidPrice = 0
+    unitPrice = 0
     await prisma.user.update({ where: { id: userId }, data: { freeCoursesLeft: { decrement: 1 } } })
   } else if (user.courseDiscount > 0) {
-    paidPrice = Math.round(course.price * (1 - user.courseDiscount))
+    unitPrice = Math.round(course.price * (1 - user.courseDiscount))
+  }
+  const paidPrice = unitPrice * qty
+
+  const scheduleRaw = data.preferredDate
+  let scheduleDate: Date | null = null
+  if (scheduleRaw) {
+    const parsed = new Date(scheduleRaw)
+    scheduleDate = isNaN(parsed.getTime()) ? null : parsed
   }
 
   const enrollment = await prisma.courseEnrollment.create({
@@ -34,7 +44,8 @@ export async function POST(req: Request) {
       courseId: data.courseId,
       status: "ENROLLED",
       paidPrice,
-      scheduleDate: data.preferredDate ? new Date(data.preferredDate) : null,
+      scheduleDate,
+      notes: data.note || null,
     },
     include: { course: true, user: { select: { name: true, email: true, phone: true } } }
   })

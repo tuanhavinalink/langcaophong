@@ -32,7 +32,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
     ? await prisma.courseEnrollment.findFirst({ where: { userId, courseId: course.id } })
     : null
 
-  const user = userId ? await prisma.user.findUnique({ where: { id: userId }, select: { freeCoursesLeft: true, courseDiscount: true } }) : null
+  const user = userId ? await prisma.user.findUnique({ where: { id: userId }, select: { freeCoursesLeft: true, courseDiscount: true, phone: true } }) : null
 
   const gradient = gradients[slug] || "from-green-500 to-emerald-600"
   const discount = course.originalPrice ? Math.round((1 - course.price / course.originalPrice) * 100) : 0
@@ -118,9 +118,11 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
               <EnrollButton
                 courseId={course.id}
                 courseName={course.name}
+                slug={slug}
                 isLoggedIn={!!userId}
                 existingEnrollment={existingEnrollment ? { id: existingEnrollment.id, status: existingEnrollment.status } : null}
                 finalPrice={finalPrice}
+                userPhone={user?.phone ?? null}
               />
 
               <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">

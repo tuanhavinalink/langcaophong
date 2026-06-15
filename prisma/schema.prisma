@@ -137,6 +137,7 @@ model CourseEnrollment {
   status    String   @default("ENROLLED")
   paidPrice Float
   scheduleDate DateTime?
+  notes     String?
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
   course    Course   @relation(fields: [courseId], references: [id])
