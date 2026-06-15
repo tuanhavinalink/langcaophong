@@ -98,7 +98,7 @@ export default function RegisterPage() {
               >
                 <option value="MEMBER">👤 Member thường</option>
                 <option value="SHAREHOLDER_MAIN">👑 Cổ đông Chính (15 người ban đầu)</option>
-                <option value="SHAREHOLDER_FOLLOW">🤝 Cổ đông Theo (mua lại / theo suất cổ đông chính)</option>
+                <option value="SHAREHOLDER_FOLLOW">🤝 Cổ đông Shares (mua lại / theo suất cổ đông chính)</option>
               </select>
               {form.memberType === "MEMBER" && (
                 <p className="text-xs text-gray-500 mt-1.5">Chi tiêu 10 triệu → tự động lên <strong>VIP</strong> và nhận quyền book phòng miễn phí.</p>

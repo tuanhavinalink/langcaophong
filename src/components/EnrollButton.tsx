@@ -215,7 +215,9 @@ export default function EnrollButton({ courseId, courseName, slug, isLoggedIn, e
                   <div className="rounded-xl p-4 text-center mb-4" style={{ backgroundColor: '#f0fdf4', border: '1.5px solid #bbf7d0' }}>
                     <div className="text-2xl mb-1">🎉</div>
                     <div className="font-bold text-green-800">Miễn phí — Không cần chuyển khoản</div>
-                    <div className="text-sm text-green-700 mt-1">Làng sẽ gửi link Zoom sau khi xác nhận</div>
+                    <div className="text-sm text-green-700 mt-2">
+                      Liên hệ <strong>Zalo: 0796 025 344</strong> để nhận link Zoom
+                    </div>
                   </div>
                 )}
 

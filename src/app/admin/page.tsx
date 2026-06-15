@@ -737,7 +737,7 @@ export default function AdminPage() {
                   <option value="MEMBER">Member thường</option>
                   <option value="VIP">VIP</option>
                   <option value="SHAREHOLDER_MAIN">Cổ đông Chính</option>
-                  <option value="SHAREHOLDER_FOLLOW">Cổ đông Theo</option>
+                  <option value="SHAREHOLDER_FOLLOW">Cổ đông Shares</option>
                   <option value="ADMIN">Admin</option>
                 </select>
               </div>
@@ -776,7 +776,7 @@ export default function AdminPage() {
                   <option value="MEMBER">Member thường</option>
                   <option value="VIP">VIP</option>
                   <option value="SHAREHOLDER_MAIN">Cổ đông Chính</option>
-                  <option value="SHAREHOLDER_FOLLOW">Cổ đông Theo</option>
+                  <option value="SHAREHOLDER_FOLLOW">Cổ đông Shares</option>
                   <option value="ADMIN">ADMIN</option>
                 </select>
               </div>

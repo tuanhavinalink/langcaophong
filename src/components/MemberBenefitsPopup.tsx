@@ -50,7 +50,7 @@ const tiers = [
   },
   {
     role: "SHAREHOLDER_FOLLOW",
-    label: "Cổ Đông Theo",
+    label: "Cổ Đông Shares",
     sublabel: "Mua lại / theo suất cổ đông chính",
     icon: Users,
     color: "#0369a1",
@@ -71,7 +71,7 @@ const roleLabel: Record<string, string> = {
   MEMBER: "Member Thường",
   VIP: "VIP",
   SHAREHOLDER_MAIN: "Cổ Đông Chính",
-  SHAREHOLDER_FOLLOW: "Cổ Đông Theo",
+  SHAREHOLDER_FOLLOW: "Cổ Đông Shares",
   SHAREHOLDER: "Cổ Đông",
   ADMIN: "Quản Trị",
 }

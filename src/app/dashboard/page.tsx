@@ -50,7 +50,7 @@ const roleLabels: Record<string, string> = {
   VIP: "VIP",
   SHAREHOLDER: "Cổ Đông",
   SHAREHOLDER_MAIN: "Cổ Đông Chính",
-  SHAREHOLDER_FOLLOW: "Cổ Đông Theo",
+  SHAREHOLDER_FOLLOW: "Cổ Đông Shares",
   ADMIN: "Quản Trị",
 }
 
@@ -201,7 +201,7 @@ export default async function DashboardPage() {
                   <ShareCapitalPopup shareAmount={user.shareAmount} />
                 )}
 
-                {/* Cổ đông Theo: thông tin nhánh */}
+                {/* Cổ đông Shares: thông tin nhánh */}
                 {user.role === "SHAREHOLDER_FOLLOW" && (
                   <div className="rounded-xl p-3 space-y-1.5" style={{ backgroundColor: '#eff6ff', border: '1px solid #bfdbfe' }}>
                     <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#1d4ed8' }}>Nhánh Cổ Đông</div>

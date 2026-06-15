@@ -182,7 +182,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
               )}
               {user?.role === "SHAREHOLDER_FOLLOW" && (
                 <div className="mb-3 rounded-xl p-3 text-sm space-y-1" style={{ backgroundColor: '#eff6ff', border: '1.5px solid #bfdbfe' }}>
-                  <div className="font-semibold text-blue-700">🤝 Quyền lợi Cổ đông Theo</div>
+                  <div className="font-semibold text-blue-700">🤝 Quyền lợi Cổ đông Shares</div>
                   <div className="text-gray-600">Lên Làng (offline): <strong className="text-blue-700">-50% = {formatCurrency(Math.round(course.price * 0.5))}/người</strong></div>
                   <div className="text-gray-600">Online / Zoom: <strong className="text-green-700">Miễn phí</strong></div>
                 </div>
