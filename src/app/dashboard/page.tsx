@@ -9,6 +9,7 @@ import AffiliateCard from "@/components/AffiliateCard"
 import ShareCapitalPopup from "@/components/ShareCapitalPopup"
 import MemberBenefitsPopup from "@/components/MemberBenefitsPopup"
 import BookingList from "@/components/BookingDetailPopup"
+import CourseEnrollmentList from "@/components/CourseEnrollmentPopup"
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount)
@@ -89,6 +90,20 @@ export default async function DashboardPage() {
   })
 
   const RoleIcon = roleIcons[user.role] || User
+
+  // Serialize enrollments for client component
+  const enrollmentsSerialized = user.courseEnrollments.map(e => ({
+    id: e.id,
+    status: e.status,
+    paidPrice: e.paidPrice,
+    createdAt: e.createdAt.toISOString(),
+    scheduleDate: e.scheduleDate?.toISOString() ?? null,
+    course: {
+      name: e.course.name,
+      duration: e.course.duration,
+      instructor: e.course.instructor ?? null,
+    },
+  }))
 
   // Serialize bookings for client component
   const bookingsSerialized = user.bookings.map(b => ({
@@ -253,24 +268,7 @@ export default async function DashboardPage() {
                   <Link href="/#courses" className="mt-3 inline-block text-sm font-medium" style={{ color: '#2d6a4f' }}>Xem khóa học</Link>
                 </div>
               ) : (
-                <div className="divide-y divide-gray-50">
-                  {user.courseEnrollments.map(enrollment => (
-                    <div key={enrollment.id} className="p-4 flex items-center justify-between">
-                      <div>
-                        <div className="font-medium text-gray-900">{enrollment.course.name}</div>
-                        <div className="text-sm text-gray-500">{enrollment.course.duration}</div>
-                      </div>
-                      <div className="text-right">
-                        <div className={`px-2 py-0.5 rounded-full text-xs font-medium mb-1 ${statusColors[enrollment.status]}`}>
-                          {statusLabels[enrollment.status]}
-                        </div>
-                        <div className="text-sm font-medium" style={{ color: '#2d6a4f' }}>
-                          {enrollment.paidPrice === 0 ? 'Miễn phí' : formatCurrency(enrollment.paidPrice)}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <CourseEnrollmentList enrollments={enrollmentsSerialized} userPhone={user.phone} />
               )}
             </div>
           </div>
