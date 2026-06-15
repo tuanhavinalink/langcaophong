@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { Clock, Users, Star, Check, BookOpen, ArrowLeft, User, Gift } from "lucide-react"
+import { Clock, Users, Star, Check, BookOpen, ArrowLeft, User, Gift, Calendar } from "lucide-react"
 import EnrollButton from "@/components/EnrollButton"
 
 function formatCurrency(amount: number) {
@@ -13,6 +13,11 @@ const gradients: Record<string, string> = {
   "vi-mo": "from-blue-600 to-cyan-500",
   "solo": "from-purple-500 to-pink-500",
   "detox-sam": "from-green-500 to-emerald-500",
+}
+
+const fixedSchedules: Record<string, string[]> = {
+  "vi-mo": ["20 – 21/06/2026", "04 – 05/07/2026"],
+  "solo": ["27 – 28/06/2026"],
 }
 
 export default async function CoursePage({ params }: { params: Promise<{ slug: string }> }) {
@@ -35,6 +40,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
   const user = userId ? await prisma.user.findUnique({ where: { id: userId }, select: { freeCoursesLeft: true, courseDiscount: true, phone: true } }) : null
 
   const gradient = gradients[slug] || "from-green-500 to-emerald-600"
+  const schedules = fixedSchedules[slug] || []
   const discount = course.originalPrice ? Math.round((1 - course.price / course.originalPrice) * 100) : 0
 
   let finalPrice = course.price
@@ -69,6 +75,18 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
                   </span>
                 )}
               </div>
+              {schedules.length > 0 && (
+                <div className="mt-6 rounded-2xl overflow-hidden border border-white/30 inline-block">
+                  <div className="flex items-center gap-2 px-4 py-2 bg-white/20 text-white text-sm font-semibold">
+                    <Calendar className="w-4 h-4" /> Lịch học gần nhất
+                  </div>
+                  {schedules.map((s, i) => (
+                    <div key={i} className="px-4 py-2.5 text-white font-medium text-sm bg-white/10 border-t border-white/20">
+                      📅 {s}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Price Card */}
@@ -179,6 +197,26 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {schedules.length > 0 && (
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h2 className="text-2xl font-bold text-gray-900 mb-5 flex items-center gap-2">
+                  <Calendar className="w-6 h-6" style={{ color: '#2d6a4f' }} /> Lịch Học
+                </h2>
+                <div className="space-y-3">
+                  {schedules.map((s, i) => (
+                    <div key={i} className="flex items-center gap-4 p-4 rounded-xl border border-gray-100" style={{ backgroundColor: '#f0fdf4' }}>
+                      <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style={{ backgroundColor: '#2d6a4f' }}>{i + 1}</div>
+                      <div>
+                        <div className="font-semibold text-gray-900">📅 {s}</div>
+                        <div className="text-sm text-gray-500 mt-0.5">{course.duration} tại Làng Cao Phong</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-sm text-gray-500 mt-4">* Đăng ký sớm để giữ chỗ, số lượng có hạn mỗi khóa.</p>
               </div>
             )}
 

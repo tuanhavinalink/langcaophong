@@ -17,6 +17,7 @@ const courses = [
     originalPrice: null,
     icon: Brain,
     color: "from-blue-500 to-cyan-500",
+    schedules: ["20 – 21/06/2026", "04 – 05/07/2026"],
   },
   {
     slug: "solo",
@@ -27,6 +28,7 @@ const courses = [
     originalPrice: null,
     icon: BookOpen,
     color: "from-purple-500 to-pink-500",
+    schedules: ["27 – 28/06/2026"],
   },
   {
     slug: "detox-sam",
@@ -37,6 +39,7 @@ const courses = [
     originalPrice: null,
     icon: Leaf,
     color: "from-green-500 to-emerald-500",
+    schedules: [],
   },
 ]
 
@@ -225,10 +228,20 @@ export default function HomePage() {
                 <div className="p-6">
                   <h3 className="text-xl font-bold text-white mb-2">{course.name}</h3>
                   <p className="text-green-200 text-sm mb-4 leading-relaxed">{course.desc}</p>
-                  <div className="flex items-center gap-2 text-green-300 text-sm mb-4">
+                  <div className="flex items-center gap-2 text-green-300 text-sm mb-3">
                     <Star className="w-4 h-4" />
                     <span>{course.duration}</span>
                   </div>
+                  {course.schedules.length > 0 && (
+                    <div className="mb-4 rounded-xl overflow-hidden border border-white/20">
+                      <div className="px-3 py-1.5 text-xs font-semibold text-green-300 uppercase tracking-wide bg-white/10">🗓 Lịch học gần nhất</div>
+                      {course.schedules.map((s, i) => (
+                        <div key={i} className="px-3 py-2 text-sm text-white font-medium bg-white/5 border-t border-white/10">
+                          {s}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   <div className="flex items-end justify-between mb-4">
                     <div>
                       <div className="text-2xl font-bold" style={{ color: '#95d5b2' }}>{formatCurrency(course.price)}</div>
