@@ -107,8 +107,8 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
                   {registerOptions.map((opt: any, i: number) => (
                     <div key={i} className="flex justify-between items-center text-sm px-3 py-2 rounded-lg bg-gray-50 border border-gray-100">
                       <span className="text-gray-700 font-medium">{opt.type}</span>
-                      <span style={{ color: '#2d6a4f' }} className="font-semibold">
-                        {opt.price ? formatCurrency(opt.price) : "Liên hệ"}
+                      <span style={{ color: opt.price ? '#2d6a4f' : '#6b7280' }} className="font-semibold">
+                        {opt.price ? formatCurrency(opt.price) : (opt.label || "Liên hệ")}
                       </span>
                     </div>
                   ))}
