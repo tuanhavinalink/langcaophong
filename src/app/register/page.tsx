@@ -1,16 +1,29 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Mountain, Eye, EyeOff, UserPlus } from "lucide-react"
 
+function formatCurrency(n: number) {
+  return new Intl.NumberFormat('vi-VN').format(n) + " đ"
+}
+
+interface MainShareholder { id: string; name: string | null; shareAmount: number }
+
 export default function RegisterPage() {
   const router = useRouter()
-  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "", memberType: "MEMBER" })
+  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "", memberType: "MEMBER", parentShareholderId: "" })
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [mainShareholders, setMainShareholders] = useState<MainShareholder[]>([])
+
+  useEffect(() => {
+    if (form.memberType === "SHAREHOLDER_FOLLOW") {
+      fetch("/api/shareholders").then(r => r.json()).then(setMainShareholders)
+    }
+  }, [form.memberType])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -34,7 +47,7 @@ export default function RegisterPage() {
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: form.name, email: form.email, phone: form.phone, password: form.password, memberType: form.memberType })
+        body: JSON.stringify({ name: form.name, email: form.email, phone: form.phone, password: form.password, memberType: form.memberType, parentShareholderId: form.parentShareholderId || null })
       })
       const data = await res.json()
       if (!res.ok) {
@@ -94,6 +107,26 @@ export default function RegisterPage() {
                 <p className="text-xs mt-1.5" style={{ color: '#7c3aed' }}>Tài khoản cổ đông sẽ được Admin xác nhận và cấp quyền đầy đủ sau khi đăng ký.</p>
               )}
             </div>
+
+            {/* Parent shareholder picker — SHAREHOLDER_FOLLOW only */}
+            {form.memberType === "SHAREHOLDER_FOLLOW" && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Đăng ký theo nhánh Cổ đông Chính nào?</label>
+                <select
+                  value={form.parentShareholderId}
+                  onChange={e => setForm({ ...form, parentShareholderId: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 text-gray-900 bg-white"
+                >
+                  <option value="">— Chưa biết / Để Admin phân nhánh sau —</option>
+                  {mainShareholders.map(m => (
+                    <option key={m.id} value={m.id}>
+                      👑 {m.name}{m.shareAmount > 0 ? ` · ${formatCurrency(m.shareAmount)}` : ''}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-1.5">Nếu chưa chắc, Admin sẽ phân nhánh sau khi xác nhận tài khoản.</p>
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Họ và tên</label>
