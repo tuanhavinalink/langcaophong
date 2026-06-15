@@ -76,23 +76,27 @@ export default function EnrollButton({ courseId, courseName, slug, isLoggedIn, e
   const [enrollmentData, setEnrollmentData] = useState<{ paidPrice: number; transferNote: string; qrUrl: string } | null>(null)
   const [error, setError] = useState("")
 
-  // Price per person
-  const unitPricePerson = isFollowShareholder
-    ? (format === "online" ? 0 : Math.round(basePrice * 0.5))
-    : finalPrice  // VIP finalPrice đã -30%, Member thường = basePrice
+  const halfPrice = Math.round(basePrice * 0.5)
 
-  // Total:
-  // CĐ Chính còn free slot: person 1 free, person 2+ pay 50%
-  // CĐ Chính đã dùng free slot: tất cả 50%
-  // Others: unitPricePerson * qty
+  // Total price calculation
+  // CĐ Chính free slot available: person 1 free, person 2+ = 50%
+  // CĐ Chính no free slot: all at 50%
+  // CĐ Shares offline: all at 50%
+  // CĐ Shares online: person 1 free, person 2+ = 50%
+  // Others: finalPrice * qty
   const totalPrice = mainShareholderFreeAvailable
-    ? (qty <= 1 ? 0 : (qty - 1) * Math.round(basePrice * 0.5))
+    ? (qty <= 1 ? 0 : (qty - 1) * halfPrice)
     : isMainShareholder
-      ? qty * Math.round(basePrice * 0.5)
-      : unitPricePerson * qty
+      ? qty * halfPrice
+      : isFollowShareholder
+        ? (format === "online" ? (qty <= 1 ? 0 : (qty - 1) * halfPrice) : qty * halfPrice)
+        : finalPrice * qty
 
-  // For display in summary row
-  const unitPrice = mainShareholderFreeAvailable ? 0 : (isMainShareholder ? Math.round(basePrice * 0.5) : unitPricePerson)
+  // Unit price for summary display
+  const unitPrice = mainShareholderFreeAvailable ? 0
+    : isMainShareholder ? halfPrice
+    : isFollowShareholder ? (format === "online" ? 0 : halfPrice)
+    : finalPrice
   const transferNote = `${userPhone || 'SDT'} ${ckKeyword}`
   const qrUrl = totalPrice > 0
     ? `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT_NO}-compact2.png?amount=${totalPrice}&addInfo=${encodeURIComponent(transferNote)}&accountName=${encodeURIComponent(ACCOUNT_NAME)}`
@@ -264,7 +268,7 @@ export default function EnrollButton({ courseId, courseName, slug, isLoggedIn, e
                           <input type="radio" name="format" className="sr-only" checked={format === 'online'} onChange={() => setFormat('online')} />
                           <span className="text-lg">💻</span>
                           <span className="text-sm font-semibold text-gray-900">Online / Zoom</span>
-                          <span className="text-xs font-bold text-blue-600">Miễn phí</span>
+                          <span className="text-xs font-bold text-blue-600">Người 1 miễn phí</span>
                         </label>
                       </div>
                     </div>
@@ -344,10 +348,25 @@ export default function EnrollButton({ courseId, courseName, slug, isLoggedIn, e
                           <span>Giá gốc</span>
                           <span className="line-through">{fmt(basePrice)} × {qty}</span>
                         </div>
-                        <div className="flex justify-between text-sm text-gray-600">
-                          <span>{unitPrice === 0 ? 'Miễn phí' : `${fmt(unitPrice)} × ${qty} người (-50%)`}</span>
-                          <span className="font-medium">{unitPrice === 0 ? 'Miễn phí' : fmt(totalPrice)}</span>
-                        </div>
+                        {format === "online" ? (
+                          <>
+                            <div className="flex justify-between text-sm text-gray-600">
+                              <span>🎁 Người 1 (miễn phí)</span>
+                              <span className="font-medium text-green-700">0 đ</span>
+                            </div>
+                            {qty > 1 && (
+                              <div className="flex justify-between text-sm text-gray-600">
+                                <span>Người 2–{qty} × {fmt(halfPrice)} (-50%)</span>
+                                <span className="font-medium">{fmt((qty - 1) * halfPrice)}</span>
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div className="flex justify-between text-sm text-gray-600">
+                            <span>{fmt(halfPrice)} × {qty} người (-50%)</span>
+                            <span className="font-medium">{fmt(totalPrice)}</span>
+                          </div>
+                        )}
                       </>
                     ) : (
                       <div className="flex justify-between text-sm text-gray-600">

@@ -145,6 +145,16 @@ function EnrollmentCard({ enrollment, userPhone }: { enrollment: Enrollment; use
                 </div>
               </div>
 
+              {/* Zoom contact — free enrollments */}
+              {enrollment.paidPrice === 0 && enrollment.status !== "CANCELLED" && (
+                <div className="rounded-xl p-4" style={{ backgroundColor: '#f0fdf4', border: '1.5px solid #bbf7d0' }}>
+                  <div className="text-sm font-semibold text-green-800 mb-1">💬 Nhận link Zoom / tài liệu</div>
+                  <div className="text-sm text-gray-700">
+                    Liên hệ Zalo <strong className="text-green-700">0796 025 344</strong> để nhận link tham gia.
+                  </div>
+                </div>
+              )}
+
               {/* QR Payment — for paid courses */}
               {needsPayment && (
                 <div className="rounded-xl overflow-hidden border-2 border-green-200">

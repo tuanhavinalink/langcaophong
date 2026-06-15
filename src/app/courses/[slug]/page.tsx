@@ -74,11 +74,9 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
 
   const gradient = gradients[slug] || "from-green-500 to-emerald-600"
   const schedules = fixedSchedules[slug] || []
-  const discount = course.originalPrice ? Math.round((1 - course.price / course.originalPrice) * 100) : 0
 
-  let finalPrice = course.price
-  if (user?.freeCoursesLeft && user.freeCoursesLeft > 0) finalPrice = 0
-  else if (user?.courseDiscount && user.courseDiscount > 0) finalPrice = Math.round(course.price * (1 - user.courseDiscount))
+  // finalPrice chỉ dùng cho EnrollButton (VIP -30%, role khác = giá gốc)
+  const finalPrice = user?.role === "VIP" ? Math.round(course.price * 0.7) : course.price
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -126,30 +124,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
             <div className="bg-white rounded-2xl p-6 shadow-xl">
               <div className="text-center mb-5">
                 <p className="text-gray-500 text-sm mb-1">Học phí ăn ở tại Làng</p>
-                {finalPrice < course.price ? (
-                  <>
-                    <div className="text-4xl font-bold mb-1" style={{ color: '#2d6a4f' }}>
-                      {finalPrice === 0 ? 'Miễn phí' : formatCurrency(finalPrice)}
-                    </div>
-                    <div className="flex items-center justify-center gap-2">
-                      <span className="text-gray-400 line-through text-lg">{formatCurrency(course.price)}</span>
-                      {finalPrice === 0
-                        ? <span className="px-2 py-0.5 bg-green-100 text-green-700 text-sm rounded-lg font-medium">Khóa học miễn phí</span>
-                        : <span className="px-2 py-0.5 bg-red-100 text-red-600 text-sm rounded-lg font-medium">-{Math.round(((course.price - finalPrice) / course.price) * 100)}%</span>
-                      }
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="text-4xl font-bold mb-1" style={{ color: '#2d6a4f' }}>{formatCurrency(course.price)}</div>
-                    {course.originalPrice && (
-                      <div className="flex items-center justify-center gap-2">
-                        <span className="text-gray-400 line-through text-lg">{formatCurrency(course.originalPrice)}</span>
-                        <span className="px-2 py-0.5 bg-red-100 text-red-600 text-sm rounded-lg font-medium">-{discount}%</span>
-                      </div>
-                    )}
-                  </>
-                )}
+                <div className="text-4xl font-bold mb-1" style={{ color: '#2d6a4f' }}>{formatCurrency(course.price)}</div>
               </div>
 
               {/* Register options */}
