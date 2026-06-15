@@ -39,12 +39,16 @@ function priceUnitLabel(svc: Service): string {
   }
 }
 
-const VIP_ROLES = ["VIP", "SHAREHOLDER_MAIN", "SHAREHOLDER_FOLLOW", "ADMIN"]
+const FREE_ROOM_ROLES = ["VIP", "SHAREHOLDER_MAIN", "SHAREHOLDER_FOLLOW"]
 
 function getRoomPrice(room: Room, userRole: string | null): number {
-  if (userRole && VIP_ROLES.includes(userRole)) return 0
+  if (userRole && FREE_ROOM_ROLES.includes(userRole)) return 0
   if (userRole === "MEMBER" && room.memberPrice != null) return room.memberPrice
   return room.pricePerNight
+}
+
+function isFreeRole(userRole: string | null): boolean {
+  return !!userRole && FREE_ROOM_ROLES.includes(userRole)
 }
 
 export default function BookingPage() {
@@ -85,7 +89,7 @@ export default function BookingPage() {
     : 0
 
   const effectivePrice = selectedRoom ? getRoomPrice(selectedRoom, userRole) : 0
-  const isFreeRoom = selectedRoom ? (userRole && VIP_ROLES.includes(userRole)) : false
+  const isFreeRoom = selectedRoom ? isFreeRole(userRole) : false
   const basePrice = selectedRoom ? effectivePrice * nights * roomQty : 0
   const tipWcBedding = selectedRoom ? selectedRoom.tipWcBedding * roomQty : 0
 
@@ -219,7 +223,7 @@ export default function BookingPage() {
                             {room.description && <p className="text-xs text-gray-400 mt-0.5">{room.description}</p>}
                             {(() => {
                               const rp = getRoomPrice(room, userRole)
-                              const isVipFree = userRole && VIP_ROLES.includes(userRole)
+                              const isVipFree = isFreeRole(userRole)
                               return (
                                 <div className="mt-1">
                                   {isVipFree ? (
