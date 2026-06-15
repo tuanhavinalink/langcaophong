@@ -2,7 +2,7 @@
 import { useState } from "react"
 import { X, TrendingUp } from "lucide-react"
 
-const TOTAL_CAPITAL = 11_500_000_000
+const TOTAL_CAPITAL = 11_600_000_000
 
 function fmt(n: number) {
   return new Intl.NumberFormat('vi-VN').format(n) + " đ"
@@ -17,11 +17,11 @@ const breakdown = [
   },
   {
     label: "Thầy Tuấn Hà đầu tư thêm",
-    amount: 1_050_000_000,
+    amount: 1_150_000_000,
     color: "#2d6a4f",
     sub: [
       { label: "Làng vay", amount: 650_000_000 },
-      { label: "Cây trồng", amount: 150_000_000 },
+      { label: "Cây trồng", amount: 250_000_000 },
       { label: "Phòng hội thảo kính", amount: 250_000_000 },
     ],
   },
@@ -90,7 +90,7 @@ export default function ShareCapitalPopup({ shareAmount }: { shareAmount: number
                 <div className="text-2xl font-bold" style={{ color: '#7c3aed' }}>
                   {new Intl.NumberFormat('vi-VN').format(TOTAL_CAPITAL)} đ
                 </div>
-                <div className="text-sm text-gray-500 mt-1">11,5 tỷ VNĐ</div>
+                <div className="text-sm text-gray-500 mt-1">11,6 tỷ VNĐ</div>
               </div>
 
               {/* Breakdown */}
