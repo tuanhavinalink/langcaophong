@@ -17,7 +17,10 @@ interface UserData {
   id: string; name: string | null; email: string; phone: string | null
   role: string; totalSpent: number; sharePercent: number; shareAmount: number
   affiliateCode: string | null; affiliateBalance: number
-  freeCoursesLeft: number; courseDiscount: number; createdAt: string
+  freeCoursesLeft: number; courseDiscount: number
+  isActive: boolean; parentShareholderId: string | null
+  parentShareholder?: { id: string; name: string | null } | null
+  createdAt: string
 }
 
 interface BookingData {
@@ -91,7 +94,8 @@ export default function AdminPage() {
   const [isNewNotif, setIsNewNotif] = useState(false)
   const [search, setSearch] = useState("")
   const [editingUser, setEditingUser] = useState<UserData | null>(null)
-  const [editValues, setEditValues] = useState<Partial<UserData>>({})
+  const [editValues, setEditValues] = useState<Partial<UserData> & { parentShareholderId?: string | null }>({})
+  const [showPendingOnly, setShowPendingOnly] = useState(false)
   const [editingRoom, setEditingRoom] = useState<Partial<RoomData> | null>(null)
   const [isNewRoom, setIsNewRoom] = useState(false)
   const [editingService, setEditingService] = useState<Partial<ServiceData> | null>(null)
@@ -118,11 +122,14 @@ export default function AdminPage() {
     fetch("/api/admin/media").then(r => r.json()).then(setMediaItems)
   }, [])
 
-  const filteredUsers = users.filter(u =>
-    u.name?.toLowerCase().includes(search.toLowerCase()) ||
-    u.email.toLowerCase().includes(search.toLowerCase()) ||
-    u.phone?.includes(search)
-  )
+  const pendingUsers = users.filter(u => !u.isActive)
+  const filteredUsers = users.filter(u => {
+    const matchSearch = u.name?.toLowerCase().includes(search.toLowerCase()) ||
+      u.email.toLowerCase().includes(search.toLowerCase()) ||
+      u.phone?.includes(search)
+    return matchSearch && (!showPendingOnly || !u.isActive)
+  })
+  const mainShareholders = users.filter(u => u.role === "SHAREHOLDER_MAIN" && u.isActive)
   const filteredBookings = bookings.filter(b =>
     b.user?.name?.toLowerCase().includes(search.toLowerCase()) ||
     b.user?.email.toLowerCase().includes(search.toLowerCase()) ||
@@ -137,7 +144,11 @@ export default function AdminPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId: editingUser.id, ...editValues })
     })
-    if (res.ok) { setUsers(users.map(u => u.id === editingUser.id ? { ...u, ...editValues } : u)); setEditingUser(null) }
+    if (res.ok) {
+    const updated = await res.json()
+    setUsers(users.map(u => u.id === editingUser.id ? { ...u, ...updated } : u))
+    setEditingUser(null)
+  }
     setLoading(false)
   }
 
@@ -230,7 +241,7 @@ export default function AdminPage() {
   const totalRevenue = bookings.filter(b => b.status !== "CANCELLED").reduce((s, b) => s + b.totalPrice, 0)
   const pendingCount = bookings.filter(b => b.status === "PENDING").length
 
-  const roleColors: Record<string, string> = { MEMBER: "bg-gray-100 text-gray-700", VIP: "bg-yellow-100 text-yellow-700", SHAREHOLDER: "bg-purple-100 text-purple-700", ADMIN: "bg-red-100 text-red-700" }
+  const roleColors: Record<string, string> = { MEMBER: "bg-gray-100 text-gray-700", VIP: "bg-yellow-100 text-yellow-700", SHAREHOLDER: "bg-purple-100 text-purple-700", SHAREHOLDER_MAIN: "bg-purple-100 text-purple-700", SHAREHOLDER_FOLLOW: "bg-blue-100 text-blue-700", ADMIN: "bg-red-100 text-red-700" }
   const statusColors: Record<string, string> = { PENDING: "bg-yellow-100 text-yellow-700", CONFIRMED: "bg-green-100 text-green-700", CANCELLED: "bg-red-100 text-red-700", COMPLETED: "bg-blue-100 text-blue-700" }
   const statusLabels: Record<string, string> = { PENDING: "Chờ xác nhận", CONFIRMED: "Đã xác nhận", CANCELLED: "Đã hủy", COMPLETED: "Hoàn thành" }
 
@@ -302,6 +313,24 @@ export default function AdminPage() {
 
         {/* Users Tab */}
         {tab === "users" && (
+          <div className="space-y-4">
+            {/* Pending alert */}
+            {pendingUsers.length > 0 && (
+              <div className="rounded-2xl p-4 flex items-center justify-between" style={{ backgroundColor: '#fef3c7', border: '1.5px solid #fde68a' }}>
+                <div>
+                  <span className="font-bold text-amber-800">⏳ {pendingUsers.length} cổ đông chờ kích hoạt</span>
+                  <div className="text-sm text-amber-700 mt-0.5">{pendingUsers.map(u => u.name || u.email).join(', ')}</div>
+                </div>
+                <button
+                  onClick={() => setShowPendingOnly(p => !p)}
+                  className="px-3 py-1.5 rounded-lg text-sm font-medium"
+                  style={{ backgroundColor: showPendingOnly ? '#92400e' : '#d97706', color: 'white' }}
+                >
+                  {showPendingOnly ? 'Xem tất cả' : 'Lọc cổ đông chờ'}
+                </button>
+              </div>
+            )}
+
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -310,23 +339,45 @@ export default function AdminPage() {
                     <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">Người dùng</th>
                     <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">SĐT</th>
                     <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">Vai trò</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">Chi tiêu</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">Cổ phần</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">Trạng thái</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">Vốn đầu tư</th>
                     <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">Ngày tham gia</th>
                     <th className="px-4 py-3"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {filteredUsers.map(user => (
-                    <tr key={user.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3"><div className="font-medium text-gray-900 text-sm">{user.name || '—'}</div><div className="text-xs text-gray-500">{user.email}</div></td>
+                    <tr key={user.id} className={`hover:bg-gray-50 ${!user.isActive ? 'bg-amber-50' : ''}`}>
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-gray-900 text-sm">{user.name || '—'}</div>
+                        <div className="text-xs text-gray-500">{user.email}</div>
+                        {user.parentShareholder && (
+                          <div className="text-xs mt-0.5" style={{ color: '#1d4ed8' }}>↳ {user.parentShareholder.name}</div>
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-sm text-gray-600">{user.phone || '—'}</td>
-                      <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleColors[user.role]}`}>{user.role}</span></td>
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{formatCurrency(user.totalSpent)}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{user.sharePercent > 0 ? `${user.sharePercent}%` : '—'}</td>
+                      <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleColors[user.role] || 'bg-gray-100 text-gray-700'}`}>{user.role}</span></td>
+                      <td className="px-4 py-3">
+                        {user.isActive
+                          ? <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Active</span>
+                          : <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">Chờ duyệt</span>
+                        }
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{user.shareAmount > 0 ? formatCurrency(user.shareAmount) : '—'}</td>
                       <td className="px-4 py-3 text-xs text-gray-500">{formatDate(user.createdAt)}</td>
                       <td className="px-4 py-3">
-                        <button onClick={() => { setEditingUser(user); setEditValues({ role: user.role, sharePercent: user.sharePercent, shareAmount: user.shareAmount, freeCoursesLeft: user.freeCoursesLeft, courseDiscount: user.courseDiscount }) }} className="p-1.5 rounded-lg hover:bg-green-50 text-gray-400 hover:text-green-700 transition-colors">
+                        <button onClick={() => {
+                          setEditingUser(user)
+                          setEditValues({
+                            role: user.role,
+                            sharePercent: user.sharePercent,
+                            shareAmount: user.shareAmount,
+                            freeCoursesLeft: user.freeCoursesLeft,
+                            courseDiscount: user.courseDiscount,
+                            isActive: user.isActive,
+                            parentShareholderId: user.parentShareholderId,
+                          })
+                        }} className="p-1.5 rounded-lg hover:bg-green-50 text-gray-400 hover:text-green-700 transition-colors">
                           <Edit2 className="w-4 h-4" />
                         </button>
                       </td>
@@ -335,6 +386,7 @@ export default function AdminPage() {
                 </tbody>
               </table>
             </div>
+          </div>
           </div>
         )}
 
@@ -619,17 +671,42 @@ export default function AdminPage() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Vai trò</label>
-                <select value={editValues.role || editingUser.role} onChange={e => setEditValues({ ...editValues, role: e.target.value })} className={inputCls}>
-                  <option value="MEMBER">MEMBER</option>
+                <select value={editValues.role ?? editingUser.role} onChange={e => setEditValues({ ...editValues, role: e.target.value })} className={inputCls}>
+                  <option value="MEMBER">Member thường</option>
                   <option value="VIP">VIP</option>
-                  <option value="SHAREHOLDER">SHAREHOLDER</option>
+                  <option value="SHAREHOLDER_MAIN">Cổ đông Chính</option>
+                  <option value="SHAREHOLDER_FOLLOW">Cổ đông Theo</option>
                   <option value="ADMIN">ADMIN</option>
                 </select>
               </div>
+              <div className="flex items-center gap-3 p-3 rounded-xl" style={{ backgroundColor: '#f0fdf4' }}>
+                <label className="text-sm font-medium text-gray-700 flex-1">Kích hoạt tài khoản</label>
+                <button
+                  onClick={() => setEditValues({ ...editValues, isActive: !(editValues.isActive ?? editingUser.isActive) })}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${(editValues.isActive ?? editingUser.isActive) ? '' : 'bg-gray-300'}`}
+                  style={(editValues.isActive ?? editingUser.isActive) ? { backgroundColor: '#2d6a4f' } : {}}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${(editValues.isActive ?? editingUser.isActive) ? 'translate-x-6' : 'translate-x-1'}`} />
+                </button>
+                <span className="text-sm text-gray-600">{(editValues.isActive ?? editingUser.isActive) ? 'Active' : 'Chờ duyệt'}</span>
+              </div>
+              {((editValues.role ?? editingUser.role) === "SHAREHOLDER_FOLLOW") && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nhánh Cổ đông Chính</label>
+                  <select
+                    value={editValues.parentShareholderId ?? editingUser.parentShareholderId ?? ""}
+                    onChange={e => setEditValues({ ...editValues, parentShareholderId: e.target.value || null })}
+                    className={inputCls}
+                  >
+                    <option value="">— Chưa phân nhánh —</option>
+                    {mainShareholders.map(m => (
+                      <option key={m.id} value={m.id}>{m.name} ({formatCurrency(m.shareAmount)})</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-3">
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">Cổ phần (%)</label><input type="number" step="0.01" min="0" max="100" value={editValues.sharePercent ?? editingUser.sharePercent} onChange={e => setEditValues({ ...editValues, sharePercent: Number(e.target.value) })} className={inputCls} /></div>
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">Tiền cổ phần</label><input type="number" min="0" value={editValues.shareAmount ?? editingUser.shareAmount} onChange={e => setEditValues({ ...editValues, shareAmount: Number(e.target.value) })} className={inputCls} /></div>
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">KH miễn phí</label><input type="number" min="0" value={editValues.freeCoursesLeft ?? editingUser.freeCoursesLeft} onChange={e => setEditValues({ ...editValues, freeCoursesLeft: Number(e.target.value) })} className={inputCls} /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Tiền cổ phần (VNĐ)</label><input type="number" min="0" value={editValues.shareAmount ?? editingUser.shareAmount} onChange={e => setEditValues({ ...editValues, shareAmount: Number(e.target.value) })} className={inputCls} /></div>
                 <div><label className="block text-sm font-medium text-gray-700 mb-1">Giảm giá KH (0-1)</label><input type="number" step="0.01" min="0" max="1" value={editValues.courseDiscount ?? editingUser.courseDiscount} onChange={e => setEditValues({ ...editValues, courseDiscount: Number(e.target.value) })} className={inputCls} /></div>
               </div>
             </div>
