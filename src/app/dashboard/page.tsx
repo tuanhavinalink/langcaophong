@@ -7,6 +7,8 @@ import {
 } from "lucide-react"
 import AffiliateCard from "@/components/AffiliateCard"
 import ShareCapitalPopup from "@/components/ShareCapitalPopup"
+import MemberBenefitsPopup from "@/components/MemberBenefitsPopup"
+import BookingList from "@/components/BookingDetailPopup"
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount)
@@ -55,12 +57,17 @@ export default async function DashboardPage() {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     include: {
-      bookings: { include: { room: true }, orderBy: { createdAt: "desc" }, take: 10 },
+      bookings: { include: { room: true }, orderBy: { createdAt: "desc" }, take: 20 },
       courseEnrollments: { include: { course: true }, orderBy: { createdAt: "desc" } },
     }
   })
 
   if (!user) redirect("/login")
+
+  // totalSpent = chỉ tính booking đã CONFIRMED hoặc COMPLETED
+  const confirmedSpent = user.bookings
+    .filter(b => b.status === "CONFIRMED" || b.status === "COMPLETED")
+    .reduce((sum, b) => sum + b.totalPrice, 0)
 
   const notifications = await prisma.notification.findMany({
     where: { isActive: true, OR: [{ targetRoles: "ALL" }, { targetRoles: user.role }] },
@@ -69,6 +76,31 @@ export default async function DashboardPage() {
   })
 
   const RoleIcon = roleIcons[user.role] || User
+
+  // Serialize bookings for client component
+  const bookingsSerialized = user.bookings.map(b => ({
+    id: b.id,
+    bookingCode: b.bookingCode ?? null,
+    status: b.status,
+    checkIn: b.checkIn?.toISOString() ?? null,
+    checkOut: b.checkOut?.toISOString() ?? null,
+    guests: b.guests,
+    isFullVillage: b.isFullVillage,
+    companyName: b.companyName ?? null,
+    purpose: b.purpose ?? null,
+    notes: b.notes ?? null,
+    basePrice: b.basePrice,
+    servicesPrice: b.servicesPrice,
+    discount: b.discount,
+    totalPrice: b.totalPrice,
+    includeBreakfast: b.includeBreakfast,
+    includeLunch: b.includeLunch,
+    includeDinner: b.includeDinner,
+    includeCampfire: b.includeCampfire,
+    kitchenTip: b.kitchenTip,
+    createdAt: b.createdAt.toISOString(),
+    room: b.room ? { name: b.room.name } : null,
+  }))
 
   return (
     <div className="min-h-screen py-10" style={{ backgroundColor: '#f0fdf4' }}>
@@ -100,30 +132,38 @@ export default async function DashboardPage() {
                 {user.shareAmount > 0 && (
                   <ShareCapitalPopup shareAmount={user.shareAmount} />
                 )}
+
                 <div className="flex justify-between">
                   <span className="text-gray-500">Tổng chi tiêu</span>
-                  <span className="font-medium text-gray-900">{formatCurrency(user.totalSpent)}</span>
+                  <span className="font-medium text-gray-900">{formatCurrency(confirmedSpent)}</span>
                 </div>
-                {user.freeCoursesLeft > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Khóa học miễn phí</span>
-                    <span className="font-medium text-green-600">{user.freeCoursesLeft} khóa</span>
-                  </div>
-                )}
+
                 {user.courseDiscount > 0 && (
                   <div className="flex justify-between">
                     <span className="text-gray-500">Giảm giá khóa học</span>
                     <span className="font-medium text-green-600">{(user.courseDiscount * 100).toFixed(0)}%</span>
                   </div>
                 )}
+
+                {user.freeCoursesLeft > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Khóa học miễn phí</span>
+                    <span className="font-medium text-green-600">{user.freeCoursesLeft} khóa</span>
+                  </div>
+                )}
               </div>
 
-              {user.role === "MEMBER" && (
+              {user.role === "MEMBER" && confirmedSpent < 10_000_000 && (
                 <div className="mt-4 p-3 rounded-xl text-xs" style={{ backgroundColor: '#f0fdf4' }}>
-                  <p className="text-gray-600">Chi tiêu {formatCurrency(10000000 - user.totalSpent)} nữa để lên <strong style={{ color: '#2d6a4f' }}>VIP</strong> và nhận 2 khóa học miễn phí!</p>
+                  <p className="text-gray-600">Chi tiêu {formatCurrency(10_000_000 - confirmedSpent)} nữa để lên <strong style={{ color: '#2d6a4f' }}>VIP</strong> và nhận giảm 30% tất cả khóa học!</p>
                 </div>
               )}
             </div>
+
+            {/* Benefits */}
+            {user.role !== "ADMIN" && (
+              <MemberBenefitsPopup currentRole={user.role} />
+            )}
 
             {/* Affiliate */}
             {user.affiliateCode && (
@@ -182,35 +222,7 @@ export default async function DashboardPage() {
                   <Link href="/booking" className="mt-3 inline-block text-sm font-medium" style={{ color: '#2d6a4f' }}>Đặt phòng ngay</Link>
                 </div>
               ) : (
-                <div className="divide-y divide-gray-50">
-                  {user.bookings.map(booking => (
-                    <div key={booking.id} className="p-4 hover:bg-gray-50 transition-colors">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-medium text-gray-900">
-                              {booking.isFullVillage ? 'Thuê Nguyên Làng' : booking.room?.name || 'Đặt phòng'}
-                            </span>
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[booking.status]}`}>
-                              {statusLabels[booking.status]}
-                            </span>
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {formatDate(booking.checkIn)} → {formatDate(booking.checkOut)}
-                            {booking.guests && ` · ${booking.guests} khách`}
-                          </div>
-                          {booking.companyName && (
-                            <div className="text-xs text-gray-400 mt-1">Đoàn: {booking.companyName}</div>
-                          )}
-                        </div>
-                        <div className="text-right">
-                          <div className="font-bold" style={{ color: '#2d6a4f' }}>{formatCurrency(booking.totalPrice)}</div>
-                          <div className="text-xs text-gray-400">{formatDate(booking.createdAt)}</div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <BookingList bookings={bookingsSerialized} />
               )}
             </div>
 

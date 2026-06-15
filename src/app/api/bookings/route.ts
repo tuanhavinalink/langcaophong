@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
+async function generateBookingCode(): Promise<string> {
+  const count = await prisma.booking.count()
+  return `LCP-${String(count + 1).padStart(4, '0')}`
+}
+
 export async function POST(req: NextRequest) {
   const session = await auth()
   if (!session?.user) {
@@ -11,19 +16,14 @@ export async function POST(req: NextRequest) {
   try {
     const data = await req.json()
     const userId = (session.user as any).id
+    const bookingCode = await generateBookingCode()
 
-    const user = await prisma.user.findUnique({ where: { id: userId } })
-
-    let discount = 0
-    if (user?.role === "VIP" && data.isFullVillage) {
-      discount = 0.3
-    }
-
-    const totalPrice = data.basePrice * (1 - discount) + (data.servicesPrice || 0)
+    const totalPrice = data.basePrice + (data.servicesPrice || 0)
 
     const booking = await prisma.booking.create({
       data: {
         userId,
+        bookingCode,
         type: data.isFullVillage ? "FULL_VILLAGE" : "ROOM",
         checkIn: new Date(data.checkIn),
         checkOut: new Date(data.checkOut),
@@ -41,25 +41,14 @@ export async function POST(req: NextRequest) {
         campfirePrice: data.includeCampfire ? 500000 : 0,
         basePrice: data.basePrice,
         servicesPrice: data.servicesPrice || 0,
-        discount: discount * data.basePrice,
+        discount: data.discount || 0,
         totalPrice,
         notes: data.notes,
         status: "PENDING"
       }
     })
 
-    await prisma.user.update({
-      where: { id: userId },
-      data: { totalSpent: { increment: totalPrice } }
-    })
-
-    const updatedUser = await prisma.user.findUnique({ where: { id: userId } })
-    if (updatedUser && updatedUser.totalSpent >= 10000000 && updatedUser.role === "MEMBER") {
-      await prisma.user.update({
-        where: { id: userId },
-        data: { role: "VIP", freeCoursesLeft: { increment: 2 } }
-      })
-    }
+    // totalSpent chỉ cộng khi booking được CONFIRMED (xem PATCH bên dưới)
 
     return NextResponse.json({ success: true, booking })
   } catch (error) {
@@ -74,10 +63,39 @@ export async function PATCH(req: NextRequest) {
   }
 
   const { bookingId, status } = await req.json()
+
+  const existing = await prisma.booking.findUnique({ where: { id: bookingId } })
+  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 })
+
   const booking = await prisma.booking.update({
     where: { id: bookingId },
     data: { status }
   })
+
+  // Cộng totalSpent khi CONFIRMED (và chưa được cộng trước đó)
+  if (status === "CONFIRMED" && existing.status !== "CONFIRMED" && existing.status !== "COMPLETED") {
+    const updatedUser = await prisma.user.update({
+      where: { id: existing.userId },
+      data: { totalSpent: { increment: existing.totalPrice } }
+    })
+
+    // Lên VIP khi đạt 10 triệu
+    if (updatedUser.totalSpent >= 10_000_000 && updatedUser.role === "MEMBER") {
+      await prisma.user.update({
+        where: { id: existing.userId },
+        data: { role: "VIP", courseDiscount: 0.3 }
+      })
+    }
+  }
+
+  // Trừ totalSpent khi CANCELLED (nếu đã được CONFIRMED)
+  if (status === "CANCELLED" && existing.status === "CONFIRMED") {
+    await prisma.user.update({
+      where: { id: existing.userId },
+      data: { totalSpent: { decrement: existing.totalPrice } }
+    })
+  }
+
   return NextResponse.json(booking)
 }
 
