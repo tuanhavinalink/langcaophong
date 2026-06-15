@@ -159,6 +159,28 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
                 </div>
               )}
 
+              {/* Role pricing badge — hiển thị ngoài form */}
+              {user?.role === "SHAREHOLDER_MAIN" && (
+                <div className="mb-3 rounded-xl p-3 text-sm space-y-1" style={{ backgroundColor: '#f5f3ff', border: '1.5px solid #e9d5ff' }}>
+                  <div className="font-semibold" style={{ color: '#7c3aed' }}>👑 Quyền lợi Cổ đông Chính</div>
+                  <div className="text-gray-600">Người 1: <strong className="text-green-700">Miễn phí</strong></div>
+                  <div className="text-gray-600">Người 2 trở đi: <strong style={{ color: '#7c3aed' }}>-50% = {formatCurrency(Math.round(course.price * 0.5))}/người</strong></div>
+                </div>
+              )}
+              {user?.role === "SHAREHOLDER_FOLLOW" && (
+                <div className="mb-3 rounded-xl p-3 text-sm space-y-1" style={{ backgroundColor: '#eff6ff', border: '1.5px solid #bfdbfe' }}>
+                  <div className="font-semibold text-blue-700">🤝 Quyền lợi Cổ đông Theo</div>
+                  <div className="text-gray-600">Lên Làng (offline): <strong className="text-blue-700">-50% = {formatCurrency(Math.round(course.price * 0.5))}/người</strong></div>
+                  <div className="text-gray-600">Online / Zoom: <strong className="text-green-700">Miễn phí</strong></div>
+                </div>
+              )}
+              {user?.role === "VIP" && (
+                <div className="mb-3 rounded-xl p-3 text-sm space-y-1" style={{ backgroundColor: '#fefce8', border: '1.5px solid #fde68a' }}>
+                  <div className="font-semibold text-yellow-700">⭐ Quyền lợi VIP</div>
+                  <div className="text-gray-600">Giảm <strong className="text-yellow-700">30%</strong> — chỉ còn <strong className="text-green-700">{formatCurrency(Math.round(course.price * 0.7))}/người</strong></div>
+                </div>
+              )}
+
               <EnrollButton
                 courseId={course.id}
                 courseName={course.name}

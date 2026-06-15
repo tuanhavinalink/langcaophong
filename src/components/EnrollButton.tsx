@@ -73,17 +73,20 @@ export default function EnrollButton({ courseId, courseName, slug, isLoggedIn, e
   const [enrollmentData, setEnrollmentData] = useState<{ paidPrice: number; transferNote: string; qrUrl: string } | null>(null)
   const [error, setError] = useState("")
 
-  // Price logic per role
-  // SHAREHOLDER_MAIN: always free
-  // SHAREHOLDER_FOLLOW: offline = 50% off base, online = free
-  // Others: use finalPrice (already discounted for VIP etc.)
-  const unitPrice = isMainShareholder
-    ? 0
-    : isFollowShareholder
-      ? (format === "online" ? 0 : Math.round(basePrice * 0.5))
-      : finalPrice
+  // Price per person
+  const unitPricePerson = isFollowShareholder
+    ? (format === "online" ? 0 : Math.round(basePrice * 0.5))
+    : finalPrice  // VIP finalPrice đã -30%, Member thường = basePrice
 
-  const totalPrice = unitPrice * qty
+  // Total:
+  // SHAREHOLDER_MAIN: person 1 free, person 2+ pay 50% each
+  // Others: unitPricePerson * qty
+  const totalPrice = isMainShareholder
+    ? (qty <= 1 ? 0 : (qty - 1) * Math.round(basePrice * 0.5))
+    : unitPricePerson * qty
+
+  // For display in summary row
+  const unitPrice = isMainShareholder ? 0 : unitPricePerson
   const transferNote = `${userPhone || 'SDT'} ${ckKeyword}`
   const qrUrl = totalPrice > 0
     ? `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT_NO}-compact2.png?amount=${totalPrice}&addInfo=${encodeURIComponent(transferNote)}&accountName=${encodeURIComponent(ACCOUNT_NAME)}`
@@ -303,25 +306,45 @@ export default function EnrollButton({ courseId, courseName, slug, isLoggedIn, e
                   </div>
 
                   {/* Price summary */}
-                  <div className="p-3.5 rounded-xl space-y-1" style={{ backgroundColor: '#f0fdf4' }}>
-                    {isFollowShareholder && (
-                      <div className="flex justify-between text-xs text-gray-500 mb-1">
-                        <span>Giá gốc</span>
-                        <span className="line-through">{fmt(basePrice)} × {qty}</span>
+                  <div className="p-3.5 rounded-xl space-y-1.5" style={{ backgroundColor: '#f0fdf4' }}>
+                    {isMainShareholder ? (
+                      <>
+                        <div className="flex justify-between text-sm text-gray-600">
+                          <span>👑 Người 1 (miễn phí)</span>
+                          <span className="font-medium text-green-700">0 đ</span>
+                        </div>
+                        {qty > 1 && (
+                          <div className="flex justify-between text-sm text-gray-600">
+                            <span>Người 2–{qty} × {fmt(Math.round(basePrice * 0.5))} (-50%)</span>
+                            <span className="font-medium">{fmt((qty - 1) * Math.round(basePrice * 0.5))}</span>
+                          </div>
+                        )}
+                      </>
+                    ) : isFollowShareholder ? (
+                      <>
+                        <div className="flex justify-between text-xs text-gray-400">
+                          <span>Giá gốc</span>
+                          <span className="line-through">{fmt(basePrice)} × {qty}</span>
+                        </div>
+                        <div className="flex justify-between text-sm text-gray-600">
+                          <span>{unitPrice === 0 ? 'Miễn phí' : `${fmt(unitPrice)} × ${qty} người (-50%)`}</span>
+                          <span className="font-medium">{unitPrice === 0 ? 'Miễn phí' : fmt(totalPrice)}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex justify-between text-sm text-gray-600">
+                        <span>{unitPrice === 0 ? 'Miễn phí' : fmt(unitPrice)} × {qty} người</span>
+                        <span className="font-medium">{unitPrice === 0 ? 'Miễn phí' : fmt(totalPrice)}</span>
                       </div>
                     )}
-                    <div className="flex justify-between text-sm text-gray-600">
-                      <span>{unitPrice === 0 ? 'Miễn phí' : fmt(unitPrice)} × {qty} người</span>
-                      <span className="font-medium">{unitPrice === 0 ? 'Miễn phí' : fmt(totalPrice)}</span>
-                    </div>
-                    <div className="flex justify-between font-bold pt-1 border-t border-green-100">
+                    <div className="flex justify-between font-bold pt-1.5 border-t border-green-200">
                       <span className="text-gray-900">Tổng học phí</span>
                       <span className="text-lg" style={{ color: '#2d6a4f' }}>
                         {totalPrice === 0 ? 'Miễn phí' : fmt(totalPrice)}
                       </span>
                     </div>
                     {totalPrice > 0 && (
-                      <p className="text-xs text-gray-500 mt-1">Chuyển khoản sau khi đăng ký thành công</p>
+                      <p className="text-xs text-gray-500">Chuyển khoản sau khi đăng ký thành công</p>
                     )}
                   </div>
 
