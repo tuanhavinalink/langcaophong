@@ -58,7 +58,7 @@ export default function HomePage() {
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80')` }}
+          style={{ backgroundImage: `url('/z7008286408607_50ea99bdf22f4c16d77d3f514847fea6.jpg')` }}
         />
         <div className="absolute inset-0 hero-gradient" />
 
@@ -160,18 +160,18 @@ export default function HomePage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-4">
                 <div className="rounded-2xl overflow-hidden h-48">
-                  <img src="https://images.unsplash.com/photo-1501854140801-50d01698950b?w=400&q=80" alt="Núi rừng" className="w-full h-full object-cover" />
+                  <img src="/z7056127181688_6230a0ef5607b1659885219b5a435698.jpg" alt="Làng Cao Phong" className="w-full h-full object-cover" />
                 </div>
                 <div className="rounded-2xl overflow-hidden h-32">
-                  <img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&q=80" alt="Rừng xanh" className="w-full h-full object-cover" />
+                  <img src="/z7264667266760_1522b2ec6eb59e06a4df0abfbb273c1f.jpg" alt="Làng Cao Phong" className="w-full h-full object-cover" />
                 </div>
               </div>
               <div className="space-y-4 mt-8">
                 <div className="rounded-2xl overflow-hidden h-32">
-                  <img src="https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=400&q=80" alt="Hồ núi" className="w-full h-full object-cover" />
+                  <img src="/z7452915816520_a8f81d70379add2ede0d6d8c65858670.jpg" alt="Làng Cao Phong" className="w-full h-full object-cover" />
                 </div>
                 <div className="rounded-2xl overflow-hidden h-48">
-                  <img src="https://images.unsplash.com/photo-1518623489648-a173ef7824f3?w=400&q=80" alt="Sông núi" className="w-full h-full object-cover" />
+                  <img src="/z6847239039731_003_dcad8b1d6cb6a013db846a5c659a7c11.jpg" alt="Làng Cao Phong" className="w-full h-full object-cover" />
                 </div>
               </div>
             </div>
