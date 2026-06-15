@@ -222,7 +222,7 @@ export default async function DashboardPage() {
                   <Link href="/booking" className="mt-3 inline-block text-sm font-medium" style={{ color: '#2d6a4f' }}>Đặt phòng ngay</Link>
                 </div>
               ) : (
-                <BookingList bookings={bookingsSerialized} />
+                <BookingList bookings={bookingsSerialized} userPhone={user.phone} />
               )}
             </div>
 

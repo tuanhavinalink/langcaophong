@@ -1,6 +1,11 @@
 "use client"
 import { useState } from "react"
-import { X, Calendar, Users, MapPin, Hash } from "lucide-react"
+import { X, Hash, Copy, Check } from "lucide-react"
+
+const DEPOSIT_AMOUNT = 500_000
+const BANK_ID = "MB"
+const ACCOUNT_NO = "6866663666666"
+const ACCOUNT_NAME = "TRAN CAO CUONG"
 
 function fmt(n: number) {
   return new Intl.NumberFormat('vi-VN').format(n) + " đ"
@@ -12,13 +17,13 @@ function fmtDate(d: string | Date | null | undefined) {
 }
 
 const statusColors: Record<string, string> = {
-  PENDING: "bg-yellow-100 text-yellow-700",
+  PENDING: "bg-orange-100 text-orange-700",
   CONFIRMED: "bg-green-100 text-green-700",
   CANCELLED: "bg-red-100 text-red-700",
   COMPLETED: "bg-blue-100 text-blue-700",
 }
 const statusLabels: Record<string, string> = {
-  PENDING: "Chờ xác nhận",
+  PENDING: "Chờ cọc & xác nhận",
   CONFIRMED: "Đã xác nhận",
   CANCELLED: "Đã hủy",
   COMPLETED: "Hoàn thành",
@@ -57,7 +62,86 @@ function BookingRow({ label, value }: { label: string; value: React.ReactNode })
   )
 }
 
-function BookingCard({ booking }: { booking: Booking }) {
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false)
+  return (
+    <button
+      onClick={() => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs transition"
+      style={{ backgroundColor: copied ? '#d1fae5' : '#f3f4f6', color: copied ? '#065f46' : '#6b7280' }}
+    >
+      {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+      {copied ? "Đã copy" : "Copy"}
+    </button>
+  )
+}
+
+function DepositSection({ phone, bookingCode }: { phone?: string | null; bookingCode?: string | null }) {
+  const transferNote = `${phone || bookingCode || 'COC'} Coc Lang`
+  const qrUrl = `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT_NO}-compact2.png?amount=${DEPOSIT_AMOUNT}&addInfo=${encodeURIComponent(transferNote)}&accountName=${encodeURIComponent(ACCOUNT_NAME)}`
+
+  return (
+    <div className="rounded-xl overflow-hidden border-2 border-orange-200">
+      <div className="px-4 py-2.5 text-center font-semibold text-sm" style={{ backgroundColor: '#fff7ed', color: '#c2410c' }}>
+        💳 Chuyển cọc 500.000 đ để xác nhận booking
+      </div>
+      <div className="bg-white p-4">
+        {/* QR */}
+        <div className="flex justify-center mb-4">
+          <img
+            src={qrUrl}
+            alt="QR chuyển khoản"
+            className="w-48 h-48 rounded-xl border border-gray-100"
+          />
+        </div>
+
+        {/* Bank info */}
+        <div className="space-y-2 text-sm">
+          <div className="flex items-center justify-between p-2.5 rounded-lg" style={{ backgroundColor: '#f9fafb' }}>
+            <div>
+              <div className="text-xs text-gray-400">Ngân hàng</div>
+              <div className="font-semibold text-gray-900">MBBank (Quân Đội)</div>
+            </div>
+          </div>
+          <div className="flex items-center justify-between p-2.5 rounded-lg" style={{ backgroundColor: '#f9fafb' }}>
+            <div>
+              <div className="text-xs text-gray-400">Số tài khoản</div>
+              <div className="font-bold text-gray-900 font-mono tracking-wide">{ACCOUNT_NO}</div>
+            </div>
+            <CopyButton text={ACCOUNT_NO} />
+          </div>
+          <div className="flex items-center justify-between p-2.5 rounded-lg" style={{ backgroundColor: '#f9fafb' }}>
+            <div>
+              <div className="text-xs text-gray-400">Chủ tài khoản</div>
+              <div className="font-semibold text-gray-900">{ACCOUNT_NAME}</div>
+            </div>
+          </div>
+          <div className="flex items-center justify-between p-2.5 rounded-lg border border-orange-100" style={{ backgroundColor: '#fff7ed' }}>
+            <div className="flex-1 min-w-0">
+              <div className="text-xs text-orange-600 font-medium">Nội dung chuyển khoản</div>
+              <div className="font-bold text-gray-900 text-sm truncate">{transferNote}</div>
+            </div>
+            <CopyButton text={transferNote} />
+          </div>
+          <div className="flex items-center justify-between p-2.5 rounded-lg" style={{ backgroundColor: '#f9fafb' }}>
+            <div>
+              <div className="text-xs text-gray-400">Số tiền cọc</div>
+              <div className="font-bold text-orange-600">500.000 đ</div>
+            </div>
+            <CopyButton text="500000" />
+          </div>
+        </div>
+
+        <p className="text-xs text-gray-400 text-center mt-3">
+          Sau khi chuyển cọc, Làng sẽ xác nhận trong vòng 24h.<br />
+          Liên hệ Hoàng Nga: <strong className="text-gray-600">0986 655 894</strong>
+        </p>
+      </div>
+    </div>
+  )
+}
+
+function BookingCard({ booking, userPhone }: { booking: Booking; userPhone?: string | null }) {
   const [open, setOpen] = useState(false)
 
   const nights = booking.checkIn && booking.checkOut
@@ -74,10 +158,7 @@ function BookingCard({ booking }: { booking: Booking }) {
 
   return (
     <>
-      <div
-        className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-        onClick={() => setOpen(true)}
-      >
+      <div className="p-4 hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => setOpen(true)}>
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -98,9 +179,7 @@ function BookingCard({ booking }: { booking: Booking }) {
               {booking.guests && ` · ${booking.guests} khách`}
               {nights && ` · ${nights} đêm`}
             </div>
-            {booking.companyName && (
-              <div className="text-xs text-gray-400 mt-0.5">Đoàn: {booking.companyName}</div>
-            )}
+            {booking.companyName && <div className="text-xs text-gray-400 mt-0.5">Đoàn: {booking.companyName}</div>}
           </div>
           <div className="text-right shrink-0">
             <div className="font-bold" style={{ color: '#2d6a4f' }}>{fmt(booking.totalPrice)}</div>
@@ -174,11 +253,9 @@ function BookingCard({ booking }: { booking: Booking }) {
                 </div>
               </div>
 
+              {/* Deposit QR — only for PENDING */}
               {booking.status === "PENDING" && (
-                <div className="rounded-xl p-3 text-xs text-center" style={{ backgroundColor: '#fef3c7', color: '#92400e' }}>
-                  Booking đang chờ xác nhận từ Làng Cao Phong.<br />
-                  Liên hệ Hoàng Nga: <strong>0986 655 894</strong> để xác nhận nhanh.
-                </div>
+                <DepositSection phone={userPhone} bookingCode={booking.bookingCode} />
               )}
 
               <button
@@ -196,11 +273,11 @@ function BookingCard({ booking }: { booking: Booking }) {
   )
 }
 
-export default function BookingList({ bookings }: { bookings: Booking[] }) {
+export default function BookingList({ bookings, userPhone }: { bookings: Booking[]; userPhone?: string | null }) {
   if (bookings.length === 0) return null
   return (
     <div className="divide-y divide-gray-50">
-      {bookings.map(b => <BookingCard key={b.id} booking={b} />)}
+      {bookings.map(b => <BookingCard key={b.id} booking={b} userPhone={userPhone} />)}
     </div>
   )
 }
