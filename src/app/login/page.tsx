@@ -51,11 +51,14 @@ export default function LoginPage() {
           <p className="text-gray-600 mt-2">Chào mừng trở lại Làng Cao Phong</p>
         </div>
 
-        {/* Promo banner */}
-        <div className="mb-5 rounded-2xl px-5 py-4 text-center" style={{ backgroundColor: '#fef3c7', border: '1.5px solid #fde68a' }}>
-          <div className="text-lg font-bold mb-1" style={{ color: '#92400e' }}>🎁 Ưu Đãi 200 Thành Viên Đầu Tiên</div>
-          <p className="text-sm" style={{ color: '#78350f' }}>
-            Đăng ký sớm được tặng quyền <strong>Booking phòng nghỉ miễn phí</strong> — không hạn chế số lượng &amp; thời gian — dành riêng cho <strong>200 thành viên đầu tiên</strong>.
+        {/* Info banner */}
+        <div className="mb-5 rounded-2xl px-5 py-4" style={{ backgroundColor: '#f0fdf4', border: '1.5px solid #bbf7d0' }}>
+          <div className="text-sm font-semibold mb-2" style={{ color: '#2d6a4f' }}>🏡 Quyền lợi thành viên</div>
+          <p className="text-sm leading-relaxed" style={{ color: '#1b4332' }}>
+            <strong>Cổ đông / VIP</strong> được Booking phòng nghỉ miễn phí — không hạn chế thời gian và số lượng.
+          </p>
+          <p className="text-sm leading-relaxed mt-1.5" style={{ color: '#374151' }}>
+            Member thường chi tiêu tới <strong>10 triệu VND</strong> sẽ lên VIP để được quyền book phòng miễn phí và tặng <strong>rau Sâm</strong> khi lên Làng.
           </p>
         </div>
 
