@@ -139,7 +139,11 @@ export default function BookingPage() {
         roomId: selectedRoom.id,
         checkIn, checkOut, guests,
         roomQty,
-        selectedServices: Array.from(selectedServices.entries()).map(([id, qty]) => ({ id, qty })),
+        selectedServices: Array.from(selectedServices.entries()).map(([id, qty]) => {
+          const svc = services.find(s => s.id === id)
+          const itemPrice = svc ? calcServicePrice(svc, guests, nights, roomQty) * (hasQty(svc.priceUnit) ? qty : 1) : 0
+          return { id, qty, price: itemPrice }
+        }),
         basePrice, tipWcBedding, servicesPrice,
         notes,
         isFullVillage: false,

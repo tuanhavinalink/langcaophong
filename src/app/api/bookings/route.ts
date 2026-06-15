@@ -18,7 +18,18 @@ export async function POST(req: NextRequest) {
     const userId = (session.user as any).id
     const bookingCode = await generateBookingCode()
 
-    const totalPrice = data.basePrice + (data.servicesPrice || 0)
+    const tipWcBedding = data.tipWcBedding || 0
+    const servicesPrice = data.servicesPrice || 0
+    const totalPrice = (data.basePrice || 0) + tipWcBedding + servicesPrice
+
+    // Resolve service names from IDs for itemized display
+    let serviceItems: { name: string; price: number }[] = []
+    if (data.selectedServices && data.selectedServices.length > 0) {
+      const svcIds = data.selectedServices.map((s: any) => s.id)
+      const svcs = await prisma.service.findMany({ where: { id: { in: svcIds } }, select: { id: true, name: true } })
+      const svcMap = Object.fromEntries(svcs.map(s => [s.id, s.name]))
+      serviceItems = data.selectedServices.map((s: any) => ({ name: svcMap[s.id] || s.id, price: s.price || 0 }))
+    }
 
     const booking = await prisma.booking.create({
       data: {
@@ -40,8 +51,10 @@ export async function POST(req: NextRequest) {
         includeDinner: data.includeDinner || false,
         includeCampfire: data.includeCampfire || false,
         campfirePrice: data.includeCampfire ? 500000 : 0,
-        basePrice: data.basePrice,
-        servicesPrice: data.servicesPrice || 0,
+        basePrice: data.basePrice || 0,
+        tipWcBedding,
+        servicesPrice,
+        serviceItems: serviceItems.length > 0 ? JSON.stringify(serviceItems) : null,
         discount: data.discount || 0,
         totalPrice,
         notes: data.notes,

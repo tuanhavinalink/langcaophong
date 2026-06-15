@@ -108,10 +108,12 @@ model Booking {
   includeCampfire   Boolean @default(false)
   campfirePrice     Float   @default(0)
 
-  basePrice   Float    @default(0)
-  servicesPrice Float  @default(0)
-  discount    Float    @default(0)
-  totalPrice  Float    @default(0)
+  basePrice     Float    @default(0)
+  tipWcBedding  Float    @default(0)
+  servicesPrice Float    @default(0)
+  serviceItems  String?  // JSON: [{name, price}]
+  discount      Float    @default(0)
+  totalPrice    Float    @default(0)
 
   isFullVillage Boolean @default(false)
   companyName   String?

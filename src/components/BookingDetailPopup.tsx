@@ -36,12 +36,15 @@ type Booking = {
   checkIn?: string | Date | null
   checkOut?: string | Date | null
   guests: number
+  roomQty?: number | null
   isFullVillage: boolean
   companyName?: string | null
   purpose?: string | null
   notes?: string | null
   basePrice: number
+  tipWcBedding?: number | null
   servicesPrice: number
+  serviceItems?: string | null  // JSON [{name, price}]
   discount: number
   totalPrice: number
   includeBreakfast: boolean
@@ -227,26 +230,56 @@ function BookingCard({ booking, userPhone }: { booking: Booking; userPhone?: str
                 </div>
               </div>
 
-              {/* Services */}
-              {services && (
-                <div className="rounded-xl border border-gray-100 overflow-hidden">
-                  <div className="px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 bg-gray-50">Dịch vụ thêm</div>
-                  <div className="px-4 py-2">
-                    <p className="text-sm text-gray-700 py-2">{services}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Price */}
+              {/* Price breakdown */}
               <div className="rounded-xl border border-gray-100 overflow-hidden">
                 <div className="px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 bg-gray-50">Chi phí</div>
                 <div className="px-4 py-2">
-                  <BookingRow label="Tiền phòng" value={fmt(booking.basePrice)} />
-                  {booking.servicesPrice > 0 && <BookingRow label="Dịch vụ" value={fmt(booking.servicesPrice)} />}
+                  {/* Room price */}
+                  {booking.basePrice > 0 && (
+                    <BookingRow
+                      label={`🏠 Tiền phòng${booking.roomQty && booking.roomQty > 1 ? ` ×${booking.roomQty}` : ''}${nights ? ` × ${nights} đêm` : ''}`}
+                      value={fmt(booking.basePrice)}
+                    />
+                  )}
+                  {booking.basePrice === 0 && (
+                    <BookingRow label="🏠 Tiền phòng" value={<span className="text-green-600 font-semibold">Miễn phí (VIP/CĐ)</span>} />
+                  )}
+
+                  {/* Tip WC */}
+                  {(booking.tipWcBedding ?? 0) > 0 && (
+                    <BookingRow label="🛁 Tip WC + ga gối" value={fmt(booking.tipWcBedding!)} />
+                  )}
+
+                  {/* Individual services */}
+                  {(() => {
+                    let items: { name: string; price: number }[] = []
+                    if (booking.serviceItems) {
+                      try { items = JSON.parse(booking.serviceItems) } catch {}
+                    }
+                    // Fallback to old boolean flags
+                    if (items.length === 0) {
+                      const legacyServices = [
+                        booking.includeBreakfast && "Bữa sáng",
+                        booking.includeLunch && "Bữa trưa",
+                        booking.includeDinner && "Bữa tối",
+                        booking.includeCampfire && "Lửa trại",
+                        booking.kitchenTip > 0 && "Bếp nấu ăn",
+                      ].filter(Boolean) as string[]
+                      if (legacyServices.length > 0 && booking.servicesPrice > 0) {
+                        return <BookingRow label={`🍽️ Dịch vụ (${legacyServices.join(', ')})`} value={fmt(booking.servicesPrice)} />
+                      }
+                      return null
+                    }
+                    return items.map((item, i) => (
+                      <BookingRow key={i} label={`• ${item.name}`} value={item.price > 0 ? fmt(item.price) : <span className="text-gray-400">—</span>} />
+                    ))
+                  })()}
+
                   {booking.discount > 0 && (
                     <BookingRow label="Giảm giá" value={<span className="text-green-600">-{fmt(booking.discount)}</span>} />
                   )}
-                  <div className="flex justify-between items-center py-2 pt-3 mt-1 border-t border-gray-100">
+
+                  <div className="flex justify-between items-center py-2.5 pt-3 mt-1 border-t border-gray-200">
                     <span className="font-bold text-gray-900">Tổng cộng</span>
                     <span className="font-bold text-lg" style={{ color: '#2d6a4f' }}>{fmt(booking.totalPrice)}</span>
                   </div>
