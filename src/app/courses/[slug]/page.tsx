@@ -168,20 +168,17 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-2 space-y-8">
-            {benefits.length > 0 && (
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h2 className="text-2xl font-bold text-gray-900 mb-5 flex items-center gap-2">
-                  <Gift className="w-6 h-6" style={{ color: '#2d6a4f' }} /> Bạn Sẽ Nhận Được
-                </h2>
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {benefits.map((b, i) => (
-                    <div key={i} className="flex items-start gap-3 p-3 rounded-xl" style={{ backgroundColor: '#f0fdf4' }}>
-                      <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{ backgroundColor: '#d1fae5' }}>
-                        <Check className="w-3.5 h-3.5" style={{ color: '#2d6a4f' }} />
-                      </div>
-                      <span className="text-gray-700 text-sm font-medium">{b}</span>
-                    </div>
-                  ))}
+            {/* Video embed — vi-mo only */}
+            {slug === "vi-mo" && (
+              <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+                <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                  <iframe
+                    className="absolute inset-0 w-full h-full"
+                    src="https://www.youtube.com/embed/-OxuDA0mx-Y"
+                    title="Giới thiệu Khóa Học Vĩ Mô"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
                 </div>
               </div>
             )}
@@ -235,6 +232,24 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
           </div>
 
           <div className="space-y-4">
+            {benefits.length > 0 && (
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <Gift className="w-5 h-5" style={{ color: '#2d6a4f' }} /> Bạn Sẽ Nhận Được
+                </h2>
+                <div className="space-y-2">
+                  {benefits.map((b, i) => (
+                    <div key={i} className="flex items-start gap-3 p-2.5 rounded-xl" style={{ backgroundColor: '#f0fdf4' }}>
+                      <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{ backgroundColor: '#d1fae5' }}>
+                        <Check className="w-3 h-3" style={{ color: '#2d6a4f' }} />
+                      </div>
+                      <span className="text-gray-700 text-sm font-medium">{b}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
               <h3 className="font-bold text-gray-900 mb-4">Thông Tin Khóa Học</h3>
               <div className="space-y-3 text-sm">
