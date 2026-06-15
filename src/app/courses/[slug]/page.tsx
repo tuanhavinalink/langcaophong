@@ -63,6 +63,13 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
     ? await prisma.courseEnrollment.findFirst({ where: { userId, courseId: course.id } })
     : null
 
+  // Đếm tổng lần đăng ký không bị hủy (để track free slot CĐ Chính)
+  const priorEnrollmentCount = userId
+    ? await prisma.courseEnrollment.count({
+        where: { userId, courseId: course.id, status: { not: "CANCELLED" } }
+      })
+    : 0
+
   const user = userId ? await prisma.user.findUnique({ where: { id: userId }, select: { freeCoursesLeft: true, courseDiscount: true, phone: true, role: true } }) : null
 
   const gradient = gradients[slug] || "from-green-500 to-emerald-600"
@@ -163,8 +170,14 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
               {user?.role === "SHAREHOLDER_MAIN" && (
                 <div className="mb-3 rounded-xl p-3 text-sm space-y-1" style={{ backgroundColor: '#f5f3ff', border: '1.5px solid #e9d5ff' }}>
                   <div className="font-semibold" style={{ color: '#7c3aed' }}>👑 Quyền lợi Cổ đông Chính</div>
-                  <div className="text-gray-600">Người 1: <strong className="text-green-700">Miễn phí</strong></div>
-                  <div className="text-gray-600">Người 2 trở đi: <strong style={{ color: '#7c3aed' }}>-50% = {formatCurrency(Math.round(course.price * 0.5))}/người</strong></div>
+                  {priorEnrollmentCount === 0 ? (
+                    <>
+                      <div className="text-gray-600">Người 1: <strong className="text-green-700">Miễn phí</strong> (1 lần/khóa học)</div>
+                      <div className="text-gray-600">Người 2 trở đi: <strong style={{ color: '#7c3aed' }}>-50% = {formatCurrency(Math.round(course.price * 0.5))}/người</strong></div>
+                    </>
+                  ) : (
+                    <div className="text-gray-600">Đã dùng suất miễn phí · Lần này: <strong style={{ color: '#7c3aed' }}>-50% = {formatCurrency(Math.round(course.price * 0.5))}/người</strong></div>
+                  )}
                 </div>
               )}
               {user?.role === "SHAREHOLDER_FOLLOW" && (
@@ -191,6 +204,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
                 userPhone={user?.phone ?? null}
                 userRole={user?.role ?? null}
                 basePrice={course.price}
+                usedFreeSlot={priorEnrollmentCount > 0}
               />
 
               <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">

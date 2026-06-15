@@ -33,6 +33,7 @@ interface Props {
   basePrice: number
   userPhone?: string | null
   userRole?: string | null
+  usedFreeSlot?: boolean  // CĐ Chính đã dùng suất miễn phí cho khóa này
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -56,12 +57,14 @@ function CopyBtn({ text }: { text: string }) {
   )
 }
 
-export default function EnrollButton({ courseId, courseName, slug, isLoggedIn, existingEnrollment, finalPrice, basePrice, userPhone, userRole }: Props) {
+export default function EnrollButton({ courseId, courseName, slug, isLoggedIn, existingEnrollment, finalPrice, basePrice, userPhone, userRole, usedFreeSlot = false }: Props) {
   const router = useRouter()
   const scheduleOptions = SCHEDULES[slug] || []
   const ckKeyword = CK_NOTE[slug] || courseName
   const isFollowShareholder = userRole === "SHAREHOLDER_FOLLOW"
   const isMainShareholder = userRole === "SHAREHOLDER_MAIN"
+  // CĐ Chính đã dùng free slot → lần này giảm 50% cho tất cả
+  const mainShareholderFreeAvailable = isMainShareholder && !usedFreeSlot
 
   const [showModal, setShowModal] = useState(false)
   const [selectedDate, setSelectedDate] = useState(scheduleOptions[0] || "")
@@ -79,14 +82,17 @@ export default function EnrollButton({ courseId, courseName, slug, isLoggedIn, e
     : finalPrice  // VIP finalPrice đã -30%, Member thường = basePrice
 
   // Total:
-  // SHAREHOLDER_MAIN: person 1 free, person 2+ pay 50% each
+  // CĐ Chính còn free slot: person 1 free, person 2+ pay 50%
+  // CĐ Chính đã dùng free slot: tất cả 50%
   // Others: unitPricePerson * qty
-  const totalPrice = isMainShareholder
+  const totalPrice = mainShareholderFreeAvailable
     ? (qty <= 1 ? 0 : (qty - 1) * Math.round(basePrice * 0.5))
-    : unitPricePerson * qty
+    : isMainShareholder
+      ? qty * Math.round(basePrice * 0.5)
+      : unitPricePerson * qty
 
   // For display in summary row
-  const unitPrice = isMainShareholder ? 0 : unitPricePerson
+  const unitPrice = mainShareholderFreeAvailable ? 0 : (isMainShareholder ? Math.round(basePrice * 0.5) : unitPricePerson)
   const transferNote = `${userPhone || 'SDT'} ${ckKeyword}`
   const qrUrl = totalPrice > 0
     ? `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT_NO}-compact2.png?amount=${totalPrice}&addInfo=${encodeURIComponent(transferNote)}&accountName=${encodeURIComponent(ACCOUNT_NAME)}`
@@ -231,10 +237,13 @@ export default function EnrollButton({ courseId, courseName, slug, isLoggedIn, e
                 </div>
 
                 <div className="space-y-4">
-                  {/* Badge miễn phí — SHAREHOLDER_MAIN */}
+                  {/* Badge — SHAREHOLDER_MAIN */}
                   {isMainShareholder && (
                     <div className="rounded-xl p-3 text-center" style={{ backgroundColor: '#f5f3ff', border: '1.5px solid #e9d5ff' }}>
-                      <span className="text-sm font-semibold" style={{ color: '#7c3aed' }}>👑 Cổ đông Chính — Tất cả khóa học miễn phí</span>
+                      {mainShareholderFreeAvailable
+                        ? <span className="text-sm font-semibold" style={{ color: '#7c3aed' }}>👑 Người 1 miễn phí · Người 2+: -50%</span>
+                        : <span className="text-sm font-semibold" style={{ color: '#7c3aed' }}>👑 Đã dùng suất miễn phí · Lần này giảm 50%</span>
+                      }
                     </div>
                   )}
 
@@ -308,18 +317,25 @@ export default function EnrollButton({ courseId, courseName, slug, isLoggedIn, e
                   {/* Price summary */}
                   <div className="p-3.5 rounded-xl space-y-1.5" style={{ backgroundColor: '#f0fdf4' }}>
                     {isMainShareholder ? (
-                      <>
-                        <div className="flex justify-between text-sm text-gray-600">
-                          <span>👑 Người 1 (miễn phí)</span>
-                          <span className="font-medium text-green-700">0 đ</span>
-                        </div>
-                        {qty > 1 && (
+                      mainShareholderFreeAvailable ? (
+                        <>
                           <div className="flex justify-between text-sm text-gray-600">
-                            <span>Người 2–{qty} × {fmt(Math.round(basePrice * 0.5))} (-50%)</span>
-                            <span className="font-medium">{fmt((qty - 1) * Math.round(basePrice * 0.5))}</span>
+                            <span>👑 Người 1 (miễn phí)</span>
+                            <span className="font-medium text-green-700">0 đ</span>
                           </div>
-                        )}
-                      </>
+                          {qty > 1 && (
+                            <div className="flex justify-between text-sm text-gray-600">
+                              <span>Người 2–{qty} × {fmt(Math.round(basePrice * 0.5))} (-50%)</span>
+                              <span className="font-medium">{fmt((qty - 1) * Math.round(basePrice * 0.5))}</span>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div className="flex justify-between text-sm text-gray-600">
+                          <span>{fmt(Math.round(basePrice * 0.5))} × {qty} người (-50%)</span>
+                          <span className="font-medium">{fmt(totalPrice)}</span>
+                        </div>
+                      )
                     ) : isFollowShareholder ? (
                       <>
                         <div className="flex justify-between text-xs text-gray-400">
