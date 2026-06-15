@@ -11,7 +11,7 @@ function formatCurrency(amount: number) {
 
 interface Room {
   id: string; name: string; type: string; capacity: number
-  pricePerNight: number; tipService: number; tipWcBedding: number; totalUnits: number; description?: string
+  pricePerNight: number; memberPrice: number | null; tipService: number; tipWcBedding: number; totalUnits: number; description?: string
 }
 
 interface Service {
@@ -39,8 +39,17 @@ function priceUnitLabel(svc: Service): string {
   }
 }
 
+const VIP_ROLES = ["VIP", "SHAREHOLDER_MAIN", "SHAREHOLDER_FOLLOW", "ADMIN"]
+
+function getRoomPrice(room: Room, userRole: string | null): number {
+  if (userRole && VIP_ROLES.includes(userRole)) return 0
+  if (userRole === "MEMBER" && room.memberPrice != null) return room.memberPrice
+  return room.pricePerNight
+}
+
 export default function BookingPage() {
   const { data: session, status } = useSession()
+  const userRole = (session?.user as any)?.role ?? null
   const router = useRouter()
   const [rooms, setRooms] = useState<Room[]>([])
   const [services, setServices] = useState<Service[]>([])
@@ -75,7 +84,9 @@ export default function BookingPage() {
     ? Math.max(0, Math.round((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86400000))
     : 0
 
-  const basePrice = selectedRoom ? selectedRoom.pricePerNight * nights * roomQty : 0
+  const effectivePrice = selectedRoom ? getRoomPrice(selectedRoom, userRole) : 0
+  const isFreeRoom = selectedRoom ? (userRole && VIP_ROLES.includes(userRole)) : false
+  const basePrice = selectedRoom ? effectivePrice * nights * roomQty : 0
   const tipWcBedding = selectedRoom ? selectedRoom.tipWcBedding * roomQty : 0
 
   const hasQty = (priceUnit: string) => priceUnit === "booking" || priceUnit === "person"
@@ -206,9 +217,31 @@ export default function BookingPage() {
                             </div>
                             <p className="text-sm text-gray-500">Sức chứa: {room.capacity} người/phòng · {room.totalUnits} {room.type === 'GLAMPING' ? 'lều' : 'phòng'} có sẵn</p>
                             {room.description && <p className="text-xs text-gray-400 mt-0.5">{room.description}</p>}
-                            <div className="font-bold mt-1" style={{ color: '#2d6a4f' }}>{formatCurrency(room.pricePerNight)}<span className="text-gray-400 font-normal text-xs">/đêm/phòng</span></div>
+                            {(() => {
+                              const rp = getRoomPrice(room, userRole)
+                              const isVipFree = userRole && VIP_ROLES.includes(userRole)
+                              return (
+                                <div className="mt-1">
+                                  {isVipFree ? (
+                                    <div className="flex items-baseline gap-2">
+                                      <span className="font-bold text-lg" style={{ color: '#16a34a' }}>Miễn phí</span>
+                                      <span className="line-through text-gray-400 text-xs">{formatCurrency(room.pricePerNight)}</span>
+                                      <span className="text-xs px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">VIP/CĐ</span>
+                                    </div>
+                                  ) : (
+                                    <div>
+                                      <span className="font-bold" style={{ color: '#2d6a4f' }}>{formatCurrency(rp)}</span>
+                                      <span className="text-gray-400 font-normal text-xs">/đêm/phòng</span>
+                                      {userRole === "MEMBER" && room.memberPrice != null && room.memberPrice !== room.pricePerNight && (
+                                        <span className="ml-2 line-through text-gray-400 text-xs">{formatCurrency(room.pricePerNight)}</span>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              )
+                            })()}
                             {room.tipWcBedding > 0 && (
-                              <div className="text-xs text-gray-500 mt-0.5">🛁 Tip WC + ga gối: {formatCurrency(room.tipWcBedding)}/phòng (mặc định)</div>
+                              <div className="text-xs text-gray-500 mt-0.5">🛁 Tip WC + ga gối: {formatCurrency(room.tipWcBedding)}/phòng (bắt buộc)</div>
                             )}
                           </div>
 
@@ -311,14 +344,23 @@ export default function BookingPage() {
                   <div className="font-medium text-gray-900">{selectedRoom.name} × {roomQty}</div>
                   {nights > 0 && (
                     <div className="flex justify-between items-baseline">
-                      <span className="font-semibold text-gray-800">{roomQty} phòng × {nights} đêm × {formatCurrency(selectedRoom.pricePerNight)}</span>
-                      <span className="font-bold text-gray-900">{formatCurrency(basePrice)}</span>
+                      {isFreeRoom ? (
+                        <>
+                          <span className="text-sm text-gray-600">{roomQty} phòng × {nights} đêm</span>
+                          <span className="font-bold text-green-600">Miễn phí</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-sm text-gray-600">{roomQty} phòng × {nights} đêm × {formatCurrency(effectivePrice)}</span>
+                          <span className="font-bold text-gray-900">{formatCurrency(basePrice)}</span>
+                        </>
+                      )}
                     </div>
                   )}
                   {tipWcBedding > 0 && (
                     <div className="flex justify-between items-baseline">
-                      <span className="text-xs text-gray-400">🛁 Tip WC + ga gối ({roomQty} phòng)</span>
-                      <span className="text-xs text-gray-400">{formatCurrency(tipWcBedding)}</span>
+                      <span className="text-xs text-gray-500">🛁 Tip WC + ga gối ({roomQty} phòng)</span>
+                      <span className="text-xs font-semibold text-gray-700">{formatCurrency(tipWcBedding)}</span>
                     </div>
                   )}
                   {services.filter(s => selectedServices.has(s.id)).map(svc => {
