@@ -7,7 +7,7 @@ import { Mountain, Eye, EyeOff, UserPlus } from "lucide-react"
 
 export default function RegisterPage() {
   const router = useRouter()
-  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "" })
+  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "", memberType: "MEMBER" })
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
@@ -34,7 +34,7 @@ export default function RegisterPage() {
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: form.name, email: form.email, phone: form.phone, password: form.password })
+        body: JSON.stringify({ name: form.name, email: form.email, phone: form.phone, password: form.password, memberType: form.memberType })
       })
       const data = await res.json()
       if (!res.ok) {
@@ -60,6 +60,13 @@ export default function RegisterPage() {
           <p className="text-gray-600 mt-2">Tạo tài khoản để đặt phòng và đăng ký khóa học</p>
         </div>
 
+        <div className="mb-5 rounded-2xl px-5 py-4 text-center" style={{ backgroundColor: '#fef3c7', border: '1.5px solid #fde68a' }}>
+          <div className="text-base font-bold mb-1" style={{ color: '#92400e' }}>🎁 200 Member Đầu Tiên</div>
+          <p className="text-sm" style={{ color: '#78350f' }}>
+            Đăng ký sớm được tặng quyền <strong>Booking phòng nghỉ miễn phí</strong> — không hạn chế số lượng &amp; thời gian.
+          </p>
+        </div>
+
         <div className="bg-white rounded-2xl shadow-lg border border-green-100 p-8">
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
@@ -67,6 +74,27 @@ export default function RegisterPage() {
                 {error}
               </div>
             )}
+
+            {/* Member type */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Loại thành viên</label>
+              <select
+                name="memberType"
+                value={form.memberType}
+                onChange={e => setForm({ ...form, memberType: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 text-gray-900 bg-white"
+              >
+                <option value="MEMBER">👤 Member thường</option>
+                <option value="SHAREHOLDER_MAIN">👑 Cổ đông Chính (15 người ban đầu)</option>
+                <option value="SHAREHOLDER_FOLLOW">🤝 Cổ đông Theo (mua lại / theo suất cổ đông chính)</option>
+              </select>
+              {form.memberType === "MEMBER" && (
+                <p className="text-xs text-gray-500 mt-1.5">Chi tiêu 10 triệu → tự động lên <strong>VIP</strong> và nhận quyền book phòng miễn phí.</p>
+              )}
+              {(form.memberType === "SHAREHOLDER_MAIN" || form.memberType === "SHAREHOLDER_FOLLOW") && (
+                <p className="text-xs mt-1.5" style={{ color: '#7c3aed' }}>Tài khoản cổ đông sẽ được Admin xác nhận và cấp quyền đầy đủ sau khi đăng ký.</p>
+              )}
+            </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Họ và tên</label>

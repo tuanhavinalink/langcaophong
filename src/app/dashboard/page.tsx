@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import {
-  User, Calendar, BookOpen, Star, Crown, Home, Settings, Bell, Pin
+  User, Calendar, BookOpen, Star, Crown, Home, Settings, Bell, Pin, Users
 } from "lucide-react"
 import AffiliateCard from "@/components/AffiliateCard"
 import ShareCapitalPopup from "@/components/ShareCapitalPopup"
@@ -39,13 +39,26 @@ const roleColors: Record<string, string> = {
   MEMBER: "bg-gray-100 text-gray-700",
   VIP: "bg-yellow-100 text-yellow-700",
   SHAREHOLDER: "bg-purple-100 text-purple-700",
+  SHAREHOLDER_MAIN: "bg-purple-100 text-purple-700",
+  SHAREHOLDER_FOLLOW: "bg-blue-100 text-blue-700",
   ADMIN: "bg-red-100 text-red-700",
+}
+
+const roleLabels: Record<string, string> = {
+  MEMBER: "Thành Viên",
+  VIP: "VIP",
+  SHAREHOLDER: "Cổ Đông",
+  SHAREHOLDER_MAIN: "Cổ Đông Chính",
+  SHAREHOLDER_FOLLOW: "Cổ Đông Theo",
+  ADMIN: "Quản Trị",
 }
 
 const roleIcons: Record<string, any> = {
   MEMBER: User,
   VIP: Star,
   SHAREHOLDER: Crown,
+  SHAREHOLDER_MAIN: Crown,
+  SHAREHOLDER_FOLLOW: Users,
   ADMIN: Crown,
 }
 
@@ -125,7 +138,7 @@ export default async function DashboardPage() {
 
               <div className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium mb-4 ${roleColors[user.role]}`}>
                 <RoleIcon className="w-4 h-4" />
-                {user.role === 'MEMBER' ? 'Thành Viên' : user.role === 'VIP' ? 'VIP' : user.role === 'SHAREHOLDER' ? 'Cổ Đông' : 'Quản Trị'}
+                {roleLabels[user.role] ?? user.role}
               </div>
 
               <div className="space-y-2 text-sm">
@@ -153,7 +166,7 @@ export default async function DashboardPage() {
                 )}
               </div>
 
-              {user.role === "MEMBER" && confirmedSpent < 10_000_000 && (
+              {user.role === "MEMBER" && confirmedSpent < 10_000_000 && user.shareAmount === 0 && (
                 <div className="mt-4 p-3 rounded-xl text-xs" style={{ backgroundColor: '#f0fdf4' }}>
                   <p className="text-gray-600">Chi tiêu {formatCurrency(10_000_000 - confirmedSpent)} nữa để lên <strong style={{ color: '#2d6a4f' }}>VIP</strong> và nhận giảm 30% tất cả khóa học!</p>
                 </div>

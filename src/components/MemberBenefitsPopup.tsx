@@ -1,18 +1,20 @@
 "use client"
 import { useState } from "react"
-import { X, Gift, Crown, Star, User } from "lucide-react"
+import { X, Gift, Crown, Star, User, Users } from "lucide-react"
 
 const tiers = [
   {
     role: "MEMBER",
-    label: "Thành Viên",
+    label: "Member Thường",
     icon: User,
     color: "#6b7280",
     bg: "#f9fafb",
     border: "#e5e7eb",
     benefits: [
-      "Miễn phí Booking phòng nghỉ, không hạn chế thời gian & số lượng",
+      "Tiền phòng theo quy định của Làng",
+      "Không phải TIP dọn phòng",
       "Giảm 30% học phí cho người thứ 2 đi kèm",
+      "Chi tiêu đủ 10 triệu VNĐ → tự động lên VIP",
     ],
   },
   {
@@ -23,27 +25,56 @@ const tiers = [
     bg: "#fffbeb",
     border: "#fde68a",
     benefits: [
-      "Miễn phí Booking phòng nghỉ, không hạn chế thời gian & số lượng",
+      "Miễn phí Booking phòng nghỉ — không hạn chế thời gian & số lượng",
+      "Tiền Tip dọn phòng 200k/Bungalow cho 1 ngày đêm",
       "Giảm 30% tất cả các khóa học tại Làng",
       "Tặng 1kg rau sâm của Làng mỗi lần lên làng",
     ],
   },
   {
-    role: "SHAREHOLDER",
-    label: "Cổ Đông Làng",
+    role: "SHAREHOLDER_MAIN",
+    label: "Cổ Đông Chính",
+    sublabel: "15 người ban đầu",
     icon: Crown,
     color: "#7c3aed",
     bg: "#f5f3ff",
     border: "#e9d5ff",
     benefits: [
-      "Miễn phí Booking phòng nghỉ, không hạn chế thời gian & số lượng",
+      "Miễn phí Booking phòng nghỉ — không hạn chế thời gian & số lượng",
+      "Tiền Tip dọn phòng 200k/Bungalow cho 1 ngày đêm",
       "Miễn phí 2 ngày 1 đêm bao ăn ở để họp Làng hàng năm",
-      "Miễn phí 2 khóa học tại Làng (Tip 700k cho 3 bữa & nghỉ đêm 2 ngày)",
+      "Miễn phí các khóa học tại Làng bao ăn ở (mỗi khóa 1 lần tham gia)",
       "Giảm 50% học phí cho người thân đi học tại Làng",
-      "Tặng 10kg rau sâm, củ sâm & trà sâm/năm (trị giá 2 triệu VND)",
+      "Tặng 10kg rau sâm, củ sâm & trà sâm/năm (trị giá 2 triệu VNĐ)",
+    ],
+  },
+  {
+    role: "SHAREHOLDER_FOLLOW",
+    label: "Cổ Đông Theo",
+    sublabel: "Mua lại / theo suất cổ đông chính",
+    icon: Users,
+    color: "#0369a1",
+    bg: "#eff6ff",
+    border: "#bfdbfe",
+    benefits: [
+      "Miễn phí Booking phòng nghỉ — không hạn chế thời gian & số lượng",
+      "Tiền Tip dọn phòng 200k/Bungalow cho 1 ngày đêm",
+      "Miễn phí 2 ngày 1 đêm bao ăn ở để họp Làng hàng năm",
+      "Miễn phí 100% học phí các khóa học online/Zoom tại Làng",
+      "Giảm 50% học phí nếu lên Làng học trực tiếp",
+      "Tặng 1kg rau sâm của Làng mỗi lần lên làng",
     ],
   },
 ]
+
+const roleLabel: Record<string, string> = {
+  MEMBER: "Member Thường",
+  VIP: "VIP",
+  SHAREHOLDER_MAIN: "Cổ Đông Chính",
+  SHAREHOLDER_FOLLOW: "Cổ Đông Theo",
+  SHAREHOLDER: "Cổ Đông",
+  ADMIN: "Quản Trị",
+}
 
 export default function MemberBenefitsPopup({ currentRole }: { currentRole: string }) {
   const [open, setOpen] = useState(false)
@@ -72,29 +103,35 @@ export default function MemberBenefitsPopup({ currentRole }: { currentRole: stri
               </button>
             </div>
 
-            <div className="p-5 space-y-4">
+            <div className="p-5 space-y-3">
               {tiers.map(tier => {
                 const Icon = tier.icon
-                const isCurrent = currentRole === tier.role
+                const isCurrent = currentRole === tier.role ||
+                  (currentRole === "SHAREHOLDER" && tier.role === "SHAREHOLDER_MAIN")
                 return (
                   <div
                     key={tier.role}
                     className="rounded-xl border-2 overflow-hidden"
                     style={{ borderColor: isCurrent ? tier.color : tier.border }}
                   >
-                    <div className="flex items-center gap-2 px-4 py-3" style={{ backgroundColor: tier.bg }}>
+                    <div className="flex items-center gap-2 px-4 py-2.5" style={{ backgroundColor: tier.bg }}>
                       <Icon className="w-4 h-4 shrink-0" style={{ color: tier.color }} />
-                      <span className="font-bold text-sm" style={{ color: tier.color }}>{tier.label}</span>
+                      <div>
+                        <span className="font-bold text-sm" style={{ color: tier.color }}>{tier.label}</span>
+                        {(tier as any).sublabel && (
+                          <span className="text-xs ml-1.5 opacity-70" style={{ color: tier.color }}>({(tier as any).sublabel})</span>
+                        )}
+                      </div>
                       {isCurrent && (
-                        <span className="ml-auto text-xs px-2 py-0.5 rounded-full text-white font-medium" style={{ backgroundColor: tier.color }}>
+                        <span className="ml-auto text-xs px-2 py-0.5 rounded-full text-white font-medium shrink-0" style={{ backgroundColor: tier.color }}>
                           Của bạn
                         </span>
                       )}
                     </div>
-                    <ul className="px-4 py-3 space-y-2 bg-white">
+                    <ul className="px-4 py-3 space-y-1.5 bg-white">
                       {tier.benefits.map((b, i) => (
                         <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                          <span className="mt-0.5 shrink-0" style={{ color: tier.color }}>✓</span>
+                          <span className="mt-0.5 shrink-0 font-bold" style={{ color: tier.color }}>✓</span>
                           {b}
                         </li>
                       ))}
@@ -104,7 +141,7 @@ export default function MemberBenefitsPopup({ currentRole }: { currentRole: stri
               })}
 
               <div className="rounded-xl p-3 text-xs text-gray-500 text-center" style={{ backgroundColor: '#f0fdf4' }}>
-                Phòng nghỉ miễn phí áp dụng theo chính sách TIP WC của Làng Cao Phong
+                Tip dọn phòng áp dụng theo chính sách TIP WC của Làng Cao Phong
               </div>
 
               <button

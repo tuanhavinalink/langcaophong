@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, email, phone, password } = await req.json()
+    const { name, email, phone, password, memberType } = await req.json()
 
     if (!name || !email || !phone || !password) {
       return NextResponse.json({ error: "Thiếu thông tin bắt buộc" }, { status: 400 })
@@ -28,7 +28,9 @@ export async function POST(req: NextRequest) {
         phone,
         password: hashedPassword,
         affiliateCode,
-        role: "MEMBER",
+        role: memberType === "SHAREHOLDER_MAIN" ? "SHAREHOLDER_MAIN"
+             : memberType === "SHAREHOLDER_FOLLOW" ? "SHAREHOLDER_FOLLOW"
+             : "MEMBER",
       }
     })
 

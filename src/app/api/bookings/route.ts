@@ -79,7 +79,7 @@ export async function PATCH(req: NextRequest) {
       data: { totalSpent: { increment: existing.totalPrice } }
     })
 
-    // Lên VIP khi đạt 10 triệu
+    // Lên VIP khi đạt 10 triệu (chỉ Member thường)
     if (updatedUser.totalSpent >= 10_000_000 && updatedUser.role === "MEMBER") {
       await prisma.user.update({
         where: { id: existing.userId },
