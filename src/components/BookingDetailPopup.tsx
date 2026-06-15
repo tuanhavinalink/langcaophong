@@ -270,8 +270,12 @@ function BookingCard({ booking, userPhone }: { booking: Booking; userPhone?: str
                       }
                       return null
                     }
-                    return items.map((item, i) => (
-                      <BookingRow key={i} label={`• ${item.name}`} value={item.price > 0 ? fmt(item.price) : <span className="text-gray-400">—</span>} />
+                    return items.map((item: any, i: number) => (
+                      <BookingRow
+                        key={i}
+                        label={`• ${item.name}${item.qty && item.qty > 1 ? ` ×${item.qty}` : ''}`}
+                        value={item.price > 0 ? fmt(item.price) : <span className="text-green-600 text-xs font-medium">Bao gồm</span>}
+                      />
                     ))
                   })()}
 

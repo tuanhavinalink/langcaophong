@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
       const svcIds = data.selectedServices.map((s: any) => s.id)
       const svcs = await prisma.service.findMany({ where: { id: { in: svcIds } }, select: { id: true, name: true } })
       const svcMap = Object.fromEntries(svcs.map(s => [s.id, s.name]))
-      serviceItems = data.selectedServices.map((s: any) => ({ name: svcMap[s.id] || s.id, price: s.price || 0 }))
+      serviceItems = data.selectedServices.map((s: any) => ({ name: svcMap[s.id] || s.id, qty: s.qty || 1, price: s.price || 0 }))
     }
 
     const booking = await prisma.booking.create({
