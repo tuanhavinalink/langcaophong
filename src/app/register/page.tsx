@@ -120,7 +120,7 @@ export default function RegisterPage() {
                   <option value="">— Chưa biết / Để Admin phân nhánh sau —</option>
                   {mainShareholders.map(m => (
                     <option key={m.id} value={m.id}>
-                      👑 {m.name}{m.shareAmount > 0 ? ` · ${formatCurrency(m.shareAmount)}` : ''}
+                      👑 {m.name}
                     </option>
                   ))}
                 </select>
