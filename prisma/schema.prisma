@@ -80,6 +80,14 @@ model Room {
   bookings    Booking[]
 }
 
+model BlockedDate {
+  id        String   @id @default(cuid())
+  checkIn   DateTime
+  checkOut  DateTime
+  reason    String
+  createdAt DateTime @default(now())
+}
+
 model Booking {
   id          String   @id @default(cuid())
   userId      String
@@ -90,6 +98,7 @@ model Booking {
   guests      Int      @default(1)
   rooms       String?
   roomId      String?
+  roomQty     Int      @default(1)
 
   includeKitchen    Boolean @default(false)
   kitchenTip        Float   @default(0)

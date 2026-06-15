@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { Users, Calendar, Search, Edit2, Check, X, TrendingUp, Home, Plus, Trash2, Coffee, Bell, Pin, Send, BookOpen, Video, Image as ImageIcon } from "lucide-react"
+import { Users, Calendar, Search, Edit2, Check, X, TrendingUp, Home, Plus, Trash2, Coffee, Bell, Pin, Send, BookOpen, Video, Image as ImageIcon, Lock } from "lucide-react"
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount)
@@ -83,7 +83,7 @@ const emptyService: Partial<ServiceData> = { name: "", description: "", icon: ""
 export default function AdminPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const [tab, setTab] = useState<"users" | "bookings" | "rooms" | "services" | "notifications" | "courses" | "media">("users")
+  const [tab, setTab] = useState<"users" | "bookings" | "rooms" | "services" | "notifications" | "courses" | "media" | "blocked">("users")
   const [users, setUsers] = useState<UserData[]>([])
   const [bookings, setBookings] = useState<BookingData[]>([])
   const [rooms, setRooms] = useState<RoomData[]>([])
@@ -103,6 +103,8 @@ export default function AdminPage() {
   const [mediaItems, setMediaItems] = useState<MediaData[]>([])
   const [editingMedia, setEditingMedia] = useState<Partial<MediaData> | null>(null)
   const [isNewMedia, setIsNewMedia] = useState(false)
+  const [blockedDates, setBlockedDates] = useState<{ id: string; checkIn: string; checkOut: string; reason: string }[]>([])
+  const [newBlock, setNewBlock] = useState({ checkIn: "", checkOut: "", reason: "" })
   const [loading, setLoading] = useState(false)
   const [showAddMember, setShowAddMember] = useState(false)
   const [newMember, setNewMember] = useState({ name: "", email: "", phone: "", password: "", role: "MEMBER", shareAmount: 0, parentShareholderId: "" })
@@ -122,6 +124,7 @@ export default function AdminPage() {
     fetch("/api/admin/notifications").then(r => r.json()).then(setNotifications)
     fetch("/api/courses/enroll").then(r => r.json()).then(setEnrollments)
     fetch("/api/admin/media").then(r => r.json()).then(setMediaItems)
+    fetch("/api/admin/blocked-dates").then(r => r.json()).then(setBlockedDates)
   }, [])
 
   const pendingUsers = users.filter(u => !u.isActive)
@@ -314,6 +317,7 @@ export default function AdminPage() {
             { key: "courses", label: `Khóa Học (${enrollments.length})`, icon: BookOpen },
             { key: "notifications", label: `Thông Báo (${notifications.length})`, icon: Bell },
             { key: "media", label: `Khám Phá Làng (${mediaItems.length})`, icon: Video },
+            { key: "blocked", label: `Khóa Ngày (${blockedDates.length})`, icon: Lock },
           ] as const).map(t => (
             <button
               key={t.key}
@@ -1017,6 +1021,99 @@ export default function AdminPage() {
               <button onClick={() => setEditingService(null)} className="flex-1 py-2.5 rounded-xl font-medium text-sm border border-gray-200 text-gray-700">Hủy</button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ===== BLOCKED DATES ===== */}
+      {tab === "blocked" && (
+        <div className="space-y-6">
+          {/* Add form */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Lock className="w-4 h-4" style={{ color: '#2d6a4f' }} /> Khóa Ngày Đặt Phòng (khi có lớp học)
+            </h3>
+            <div className="grid sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Từ ngày</label>
+                <input type="date" value={newBlock.checkIn} onChange={e => setNewBlock({ ...newBlock, checkIn: e.target.value })}
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Đến ngày</label>
+                <input type="date" value={newBlock.checkOut} min={newBlock.checkIn} onChange={e => setNewBlock({ ...newBlock, checkOut: e.target.value })}
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Lý do</label>
+                <input type="text" value={newBlock.reason} placeholder="VD: Khóa học Vĩ Mô 20-21/06" onChange={e => setNewBlock({ ...newBlock, reason: e.target.value })}
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900" />
+              </div>
+            </div>
+            <button
+              className="mt-3 px-5 py-2.5 rounded-xl text-white font-medium text-sm flex items-center gap-2"
+              style={{ backgroundColor: '#2d6a4f' }}
+              onClick={async () => {
+                if (!newBlock.checkIn || !newBlock.checkOut || !newBlock.reason) return
+                setLoading(true)
+                const res = await fetch("/api/admin/blocked-dates", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(newBlock)
+                })
+                if (res.ok) {
+                  const b = await res.json()
+                  setBlockedDates([...blockedDates, b])
+                  setNewBlock({ checkIn: "", checkOut: "", reason: "" })
+                }
+                setLoading(false)
+              }}
+              disabled={loading}
+            >
+              <Lock className="w-4 h-4" /> Khóa Ngày
+            </button>
+          </div>
+
+          {/* List */}
+          {blockedDates.length === 0 ? (
+            <div className="py-16 text-center text-gray-400 bg-white rounded-2xl border border-gray-100">
+              <Lock className="w-12 h-12 mx-auto mb-3 opacity-20" />
+              <p>Chưa có ngày nào bị khóa.</p>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+                  <tr>
+                    <th className="px-5 py-3 text-left">Từ ngày</th>
+                    <th className="px-5 py-3 text-left">Đến ngày</th>
+                    <th className="px-5 py-3 text-left">Lý do</th>
+                    <th className="px-5 py-3 text-right">Xóa</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {blockedDates.map(b => (
+                    <tr key={b.id} className="hover:bg-yellow-50">
+                      <td className="px-5 py-3 font-medium text-gray-900">{formatDate(b.checkIn)}</td>
+                      <td className="px-5 py-3 text-gray-700">{formatDate(b.checkOut)}</td>
+                      <td className="px-5 py-3 text-gray-600">{b.reason}</td>
+                      <td className="px-5 py-3 text-right">
+                        <button onClick={async () => {
+                          await fetch("/api/admin/blocked-dates", {
+                            method: "DELETE",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ id: b.id })
+                          })
+                          setBlockedDates(blockedDates.filter(x => x.id !== b.id))
+                        }} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-600">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
     </div>

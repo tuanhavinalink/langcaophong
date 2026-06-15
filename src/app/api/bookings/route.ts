@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
         checkOut: new Date(data.checkOut),
         guests: data.guests || 1,
         roomId: data.roomId,
+        roomQty: data.roomQty || 1,
         isFullVillage: data.isFullVillage || false,
         companyName: data.companyName,
         purpose: data.purpose,

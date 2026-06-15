@@ -59,6 +59,7 @@ export default function BookingPage() {
   const [services, setServices] = useState<Service[]>([])
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
   const [roomQty, setRoomQty] = useState(1)
+  const [blockedInfo, setBlockedInfo] = useState<{ reason: string } | null>(null)
   const [checkIn, setCheckIn] = useState("")
   const [checkOut, setCheckOut] = useState("")
   const [guests, setGuests] = useState(1)
@@ -79,8 +80,18 @@ export default function BookingPage() {
 
   useEffect(() => {
     if (checkIn && checkOut) {
+      setBlockedInfo(null)
       fetch(`/api/rooms/availability?checkIn=${checkIn}&checkOut=${checkOut}`)
-        .then(r => r.json()).then(setRooms)
+        .then(r => r.json())
+        .then(data => {
+          if (data.blocked) {
+            setBlockedInfo({ reason: data.reason })
+            setRooms([])
+            setSelectedRoom(null)
+          } else {
+            setRooms(data)
+          }
+        })
     }
   }, [checkIn, checkOut])
 
@@ -202,12 +213,21 @@ export default function BookingPage() {
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <Home className="w-5 h-5" style={{ color: '#2d6a4f' }} /> Chọn Phòng
               </h2>
-              {rooms.length === 0 ? (
-                <p className="text-gray-500 text-center py-6">Không có phòng trống trong thời gian này</p>
+              {blockedInfo ? (
+                <div className="rounded-xl p-5 text-center" style={{ backgroundColor: '#fef9c3', border: '1.5px solid #fde047' }}>
+                  <div className="text-2xl mb-2">🔒</div>
+                  <p className="font-semibold text-gray-800">Ngày này đã bị khóa</p>
+                  <p className="text-sm text-gray-600 mt-1">{blockedInfo.reason}</p>
+                </div>
+              ) : rooms.length === 0 && checkIn && checkOut ? (
+                <p className="text-gray-500 text-center py-6">Không còn phòng trống trong thời gian này</p>
+              ) : rooms.length === 0 ? (
+                <p className="text-gray-400 text-center py-6">Chọn ngày để xem phòng trống</p>
               ) : (
                 <div className="space-y-3">
-                  {rooms.map(room => {
+                  {rooms.map((room: any) => {
                     const isSelected = selectedRoom?.id === room.id
+                    const avail: number = room.availableUnits ?? room.totalUnits
                     return (
                       <div
                         key={room.id}
@@ -218,8 +238,9 @@ export default function BookingPage() {
                             <div className="flex items-center gap-2 mb-1">
                               <h3 className="font-semibold text-gray-900">{room.name}</h3>
                               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${room.type === 'VILLA' ? 'bg-purple-100 text-purple-700' : room.type === 'GLAMPING' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>{room.type}</span>
+                              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">{avail}/{room.totalUnits} bung trống</span>
                             </div>
-                            <p className="text-sm text-gray-500">Sức chứa: {room.capacity} người/phòng · {room.totalUnits} {room.type === 'GLAMPING' ? 'lều' : 'phòng'} có sẵn</p>
+                            <p className="text-sm text-gray-500">Sức chứa: {room.capacity} người/phòng</p>
                             {room.description && <p className="text-xs text-gray-400 mt-0.5">{room.description}</p>}
                             {(() => {
                               const rp = getRoomPrice(room, userRole)
@@ -261,12 +282,12 @@ export default function BookingPage() {
                               <span className="w-8 text-center font-bold text-gray-900">{isSelected ? roomQty : 0}</span>
                               <button
                                 type="button"
-                                onClick={() => { setSelectedRoom(room); setRoomQty(q => Math.min(room.totalUnits, isSelected ? q + 1 : 1)) }}
+                                onClick={() => { setSelectedRoom(room); setRoomQty(q => Math.min(avail, isSelected ? q + 1 : 1)) }}
                                 className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-100 font-bold"
-                                disabled={isSelected && roomQty >= room.totalUnits}
+                                disabled={isSelected && roomQty >= avail}
                               >+</button>
                             </div>
-                            <span className="text-xs text-gray-400">tối đa {room.totalUnits}</span>
+                            <span className="text-xs text-gray-400">còn {avail} bung</span>
                           </div>
                         </div>
                       </div>
