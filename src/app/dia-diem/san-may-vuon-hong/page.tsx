@@ -1,6 +1,19 @@
 import Link from "next/link"
 import { ArrowLeft, MapPin, Clock, Users, Star } from "lucide-react"
 
+export const metadata = {
+  title: "Săn Mây Vườn Hồng Cao Phong | Check-in Đẹp Cách Làng 2,5km",
+  description: "Điểm check-in săn mây tuyệt đẹp giữa vườn hồng bốn mùa tại Cao Phong, Hòa Bình — chỉ cách Làng Cao Phong 2,5km. Thiên nhiên hoang sơ, bình minh mây phủ.",
+  openGraph: {
+    title: "Săn Mây Vườn Hồng Cao Phong | Làng Cao Phong",
+    description: "Check-in săn mây giữa vườn hồng bốn mùa — trải nghiệm không thể bỏ qua khi nghỉ dưỡng tại Làng Cao Phong.",
+    url: "https://langcaophong.com/dia-diem/san-may-vuon-hong",
+    siteName: "Làng Cao Phong",
+    locale: "vi_VN",
+    type: "website",
+  },
+}
+
 export default function SanMayVuonHongPage() {
   return (
     <div className="min-h-screen bg-gray-50">

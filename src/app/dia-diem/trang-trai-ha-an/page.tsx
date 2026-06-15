@@ -1,6 +1,19 @@
 import Link from "next/link"
 import { ArrowLeft, MapPin, Clock, Users, Star } from "lucide-react"
 
+export const metadata = {
+  title: "Trang Trại Hà An – Farm Sạch Cạnh Làng Cao Phong | Cách 200m",
+  description: "Trang Trại Hà An — farm nông nghiệp sạch tiêu biểu ngay cạnh Làng Cao Phong. Trải nghiệm hái rau, trồng Sâm và không khí đồng quê thuần Việt.",
+  openGraph: {
+    title: "Trang Trại Hà An | Làng Cao Phong",
+    description: "Farm trang trại sạch ngay cạnh Làng Cao Phong — trải nghiệm nông nghiệp và thiên nhiên đặc sắc.",
+    url: "https://langcaophong.com/dia-diem/trang-trai-ha-an",
+    siteName: "Làng Cao Phong",
+    locale: "vi_VN",
+    type: "website",
+  },
+}
+
 export default function TrangTraiHaAnPage() {
   return (
     <div className="min-h-screen bg-gray-50">

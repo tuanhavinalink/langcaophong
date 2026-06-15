@@ -5,8 +5,19 @@ import Navbar from "@/components/Navbar"
 import Footer from "@/components/Footer"
 
 export const metadata: Metadata = {
-  title: "Làng Cao Phong - Khu Nghỉ Dưỡng Sinh Thái Hòa Bình",
-  description: "Khu nghỉ dưỡng sinh thái Làng Cao Phong - Chốn bình yên giữa núi rừng Hòa Bình, cách Hà Nội 80km. Bungalow, Glamping, Villa và các khóa học thiền định, kinh doanh.",
+  metadataBase: new URL("https://langcaophong.com"),
+  title: {
+    default: "Làng Cao Phong – Khu Nghỉ Dưỡng Sinh Thái Hòa Bình",
+    template: "%s | Làng Cao Phong",
+  },
+  description: "Khu nghỉ dưỡng sinh thái Làng Cao Phong — chốn bình yên giữa sông, núi và hồ tại Hòa Bình, cách Hà Nội 80km. Bungalow, Glamping, Villa, khóa học Vĩ Mô, Solopreneur, Detox Sâm.",
+  keywords: ["Làng Cao Phong", "nghỉ dưỡng Hòa Bình", "bungalow Hòa Bình", "glamping Hòa Bình", "retreat Hà Nội", "khóa học Tuấn Hà", "Cao Phong"],
+  authors: [{ name: "Làng Cao Phong" }],
+  openGraph: {
+    siteName: "Làng Cao Phong",
+    locale: "vi_VN",
+    type: "website",
+  },
 }
 
 export default function RootLayout({

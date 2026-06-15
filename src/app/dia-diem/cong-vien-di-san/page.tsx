@@ -1,6 +1,19 @@
 import Link from "next/link"
 import { ArrowLeft, MapPin, Clock, Users, Star } from "lucide-react"
 
+export const metadata = {
+  title: "Công Viên Di Sản Cao Phong | Cách Làng 900m",
+  description: "Không gian văn hóa lịch sử độc đáo tại Công Viên Di Sản Cao Phong — điểm tham quan văn hóa nổi bật, chỉ cách Làng Cao Phong 900m.",
+  openGraph: {
+    title: "Công Viên Di Sản Cao Phong | Làng Cao Phong",
+    description: "Không gian văn hóa lịch sử độc đáo ngay gần Làng Cao Phong, Hòa Bình.",
+    url: "https://langcaophong.com/dia-diem/cong-vien-di-san",
+    siteName: "Làng Cao Phong",
+    locale: "vi_VN",
+    type: "website",
+  },
+}
+
 export default function CongVienDiSanPage() {
   return (
     <div className="min-h-screen bg-gray-50">

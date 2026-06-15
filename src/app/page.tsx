@@ -54,6 +54,19 @@ function formatCurrency(amount: number) {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount)
 }
 
+export const metadata = {
+  title: "Làng Cao Phong – Khu Nghỉ Dưỡng Sinh Thái Hòa Bình | Cách Hà Nội 80km",
+  description: "Làng Cao Phong — chốn bình yên giữa sông, núi và hồ tại Hòa Bình. Bungalow, Glamping, Villa nghỉ dưỡng cuối tuần. Khóa học vĩ mô, Solopreneur, Detox Sâm. Đặt phòng ngay!",
+  openGraph: {
+    title: "Làng Cao Phong – Khu Nghỉ Dưỡng Sinh Thái Hòa Bình",
+    description: "Bungalow, Glamping, Villa giữa núi rừng Hòa Bình — cách Hà Nội chỉ 80km. Khóa học, retreat và trải nghiệm thiên nhiên đặc sắc.",
+    url: "https://langcaophong.com",
+    siteName: "Làng Cao Phong",
+    locale: "vi_VN",
+    type: "website",
+  },
+}
+
 export default function HomePage() {
   return (
     <div className="overflow-x-hidden">

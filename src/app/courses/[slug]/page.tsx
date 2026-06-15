@@ -1,7 +1,33 @@
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { notFound } from "next/navigation"
+import type { Metadata } from "next"
 import Link from "next/link"
+
+const courseDescriptions: Record<string, string> = {
+  "vi-mo": "Hiểu bức tranh kinh tế vĩ mô, đầu tư thông minh và tư duy chiến lược dài hạn. Khóa học 2 ngày 1 đêm tại Làng Cao Phong — Hòa Bình, cách Hà Nội 80km.",
+  "solo": "Vận hành doanh nghiệp 1 người bằng AI. Tìm 350 ngách siêu kiếm tiền trong 7 ngày. Học trực tiếp với thầy Tuấn Hà (Mentor SharkTank) tại Làng Cao Phong.",
+  "detox-sam": "Detox thân tâm, thiền Gosinga, ăn thực dưỡng Sâm và học trồng Sâm kinh tế cao. 5 ngày 4 đêm tại Làng Cao Phong — Hòa Bình.",
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+  const course = await prisma.course.findUnique({ where: { slug }, select: { name: true, description: true } })
+  if (!course) return {}
+  const desc = courseDescriptions[slug] || course.description || ""
+  return {
+    title: `${course.name} | Làng Cao Phong`,
+    description: desc,
+    openGraph: {
+      title: `${course.name} | Làng Cao Phong`,
+      description: desc,
+      url: `https://langcaophong.com/courses/${slug}`,
+      siteName: "Làng Cao Phong",
+      locale: "vi_VN",
+      type: "website",
+    },
+  }
+}
 import { Clock, Users, Star, Check, BookOpen, ArrowLeft, User, Gift, Calendar } from "lucide-react"
 import EnrollButton from "@/components/EnrollButton"
 

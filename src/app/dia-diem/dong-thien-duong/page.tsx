@@ -1,6 +1,19 @@
 import Link from "next/link"
 import { ArrowLeft, MapPin, Clock, Users, Star } from "lucide-react"
 
+export const metadata = {
+  title: "Động Thiên Đường – Đền Bồng Lai | Cách Làng Cao Phong 5km",
+  description: "Khám phá Động Thiên Đường và Đền Bồng Lai — hang động hùng vĩ và đền thiêng nổi tiếng vùng Cao Phong, Hòa Bình, chỉ cách Làng Cao Phong 5km.",
+  openGraph: {
+    title: "Động Thiên Đường – Đền Bồng Lai | Làng Cao Phong",
+    description: "Hang động hùng vĩ và đền thiêng nổi tiếng vùng Cao Phong, Hòa Bình — điểm tham quan không thể bỏ lỡ khi lên Làng.",
+    url: "https://langcaophong.com/dia-diem/dong-thien-duong",
+    siteName: "Làng Cao Phong",
+    locale: "vi_VN",
+    type: "website",
+  },
+}
+
 export default function DongThienDuongPage() {
   return (
     <div className="min-h-screen bg-gray-50">
