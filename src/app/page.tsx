@@ -89,9 +89,9 @@ export default function HomePage() {
             <Link
               href="/booking"
               className="px-8 py-4 rounded-full font-semibold text-lg transition-all hover:opacity-90 shadow-lg"
-              style={{ backgroundColor: '#2d6a4f', color: 'white' }}
+              style={{ backgroundColor: '#d97706', color: 'white' }}
             >
-              Đặt Phòng Ngay
+              🏡 Book Phòng Miễn Phí
             </Link>
             <Link
               href="/kham-pha-lang"
