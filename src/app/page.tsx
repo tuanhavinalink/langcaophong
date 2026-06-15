@@ -41,10 +41,10 @@ const courses = [
 ]
 
 const landmarks = [
-  { name: "Hồ Thung Nai", desc: "Hồ nước trong xanh giữa thung lũng, kayak và câu cá", distance: "5km" },
-  { name: "Ruộng Bậc Thang Cao Phong", desc: "Những thửa ruộng bậc thang đẹp như tranh vẽ", distance: "2km" },
-  { name: "Vườn Cam Cao Phong", desc: "Vùng cam đặc sản nổi tiếng, thu hoạch tháng 11-1", distance: "3km" },
-  { name: "Hang Mỡ - Hang Thẩm Lé", desc: "Hệ thống hang động kỳ bí, khám phá thiên nhiên hoang sơ", distance: "15km" },
+  { slug: "trang-trai-ha-an", name: "Trang Trại Hà An", desc: "Farm trang trại tiêu biểu ngay cạnh Làng, trải nghiệm nông nghiệp sạch và thiên nhiên", distance: "200m", icon: "🌿" },
+  { slug: "dong-thien-duong", name: "Động Thiên Đường – Đền Bồng Lai", desc: "Hang động hùng vĩ và đền thiêng nổi tiếng vùng Cao Phong", distance: "5km", icon: "⛩️" },
+  { slug: "cong-vien-di-san", name: "Công Viên Di Sản", desc: "Không gian văn hóa lịch sử độc đáo ngay gần Làng Cao Phong", distance: "900m", icon: "🏛️" },
+  { slug: "san-may-vuon-hong", name: "Săn Mây Vườn Hồng", desc: "Điểm check-in săn mây tuyệt đẹp giữa vườn hồng bốn mùa", distance: "2,5km", icon: "🌸" },
 ]
 
 function formatCurrency(amount: number) {
@@ -271,14 +271,17 @@ export default function HomePage() {
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {landmarks.map((lm) => (
-              <div key={lm.name} className="p-6 rounded-2xl border border-green-100 shadow-sm card-hover">
+              <Link key={lm.name} href={`/dia-diem/${lm.slug}`} className="group p-6 rounded-2xl border border-green-100 shadow-sm card-hover hover:border-green-300 transition-all block">
                 <div className="flex items-center gap-2 mb-3">
-                  <MapPin className="w-5 h-5" style={{ color: '#2d6a4f' }} />
+                  <span className="text-2xl">{lm.icon}</span>
                   <span className="text-xs font-medium px-2 py-0.5 rounded-full text-green-700 bg-green-100">{lm.distance}</span>
                 </div>
-                <h3 className="font-bold text-gray-900 mb-2">{lm.name}</h3>
+                <h3 className="font-bold text-gray-900 mb-2 group-hover:text-green-700 transition-colors">{lm.name}</h3>
                 <p className="text-sm text-gray-600">{lm.desc}</p>
-              </div>
+                <div className="mt-3 text-xs font-medium flex items-center gap-1" style={{ color: '#2d6a4f' }}>
+                  Xem chi tiết <ChevronRight className="w-3 h-3" />
+                </div>
+              </Link>
             ))}
           </div>
         </div>
