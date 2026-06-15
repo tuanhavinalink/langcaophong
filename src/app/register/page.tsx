@@ -60,10 +60,9 @@ export default function RegisterPage() {
           <p className="text-gray-600 mt-2">Tạo tài khoản để đặt phòng và đăng ký khóa học</p>
         </div>
 
-        <div className="mb-5 rounded-2xl px-5 py-4 text-center" style={{ backgroundColor: '#fef3c7', border: '1.5px solid #fde68a' }}>
-          <div className="text-base font-bold mb-1" style={{ color: '#92400e' }}>🎁 200 Member Đầu Tiên</div>
-          <p className="text-sm" style={{ color: '#78350f' }}>
-            Đăng ký sớm được tặng quyền <strong>Booking phòng nghỉ miễn phí</strong> — không hạn chế số lượng &amp; thời gian.
+        <div className="mb-5 rounded-2xl px-5 py-4 text-center" style={{ backgroundColor: '#f0fdf4', border: '1.5px solid #bbf7d0' }}>
+          <p className="text-sm font-medium" style={{ color: '#166534' }}>
+            🏡 <strong>Cổ đông / VIP</strong> được Booking phòng nghỉ <strong>miễn phí</strong> — không hạn chế thời gian &amp; số lượng.
           </p>
         </div>
 
