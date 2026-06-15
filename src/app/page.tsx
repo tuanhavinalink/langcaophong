@@ -21,8 +21,8 @@ const courses = [
   },
   {
     slug: "solo",
-    name: "Khóa Học SOLO",
-    desc: "Mastermind 1-1 đặc quyền cùng Thầy Tuấn Hà (Mentor SharkTank). Học phí tài trợ 100%, chỉ trả chi phí ăn ở tại Làng.",
+    name: "Khóa Học Solopreneur (OPC)",
+    desc: "Vận hành doanh nghiệp 1 người bằng AI — Tìm 350 ngách siêu kiếm tiền trong 7 ngày — Học trực tiếp với thầy Tuấn Hà.",
     duration: "2 ngày 1 đêm",
     price: 2300000,
     originalPrice: null,
