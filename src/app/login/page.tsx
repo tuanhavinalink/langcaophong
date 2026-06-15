@@ -51,6 +51,14 @@ export default function LoginPage() {
           <p className="text-gray-600 mt-2">Chào mừng trở lại Làng Cao Phong</p>
         </div>
 
+        {/* Promo banner */}
+        <div className="mb-5 rounded-2xl px-5 py-4 text-center" style={{ backgroundColor: '#fef3c7', border: '1.5px solid #fde68a' }}>
+          <div className="text-lg font-bold mb-1" style={{ color: '#92400e' }}>🎁 Ưu Đãi 200 Thành Viên Đầu Tiên</div>
+          <p className="text-sm" style={{ color: '#78350f' }}>
+            Đăng ký sớm được tặng quyền <strong>Booking phòng nghỉ miễn phí</strong> — không hạn chế số lượng &amp; thời gian — dành riêng cho <strong>200 thành viên đầu tiên</strong>.
+          </p>
+        </div>
+
         {/* Form */}
         <div className="bg-white rounded-2xl shadow-lg border border-green-100 p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -112,9 +120,9 @@ export default function LoginPage() {
 
           <div className="mt-6 text-center">
             <p className="text-gray-600 text-sm">
-              Chưa có tài khoản?{" "}
+              Muốn đăng ký thành viên để Booking miễn phí?{" "}
               <Link href="/register" className="font-semibold hover:underline" style={{ color: '#2d6a4f' }}>
-                Đăng ký ngay
+                Đăng Ký Ngay
               </Link>
             </p>
           </div>
