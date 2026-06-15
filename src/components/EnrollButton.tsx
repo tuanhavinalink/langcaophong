@@ -61,6 +61,7 @@ export default function EnrollButton({ courseId, courseName, slug, isLoggedIn, e
   const scheduleOptions = SCHEDULES[slug] || []
   const ckKeyword = CK_NOTE[slug] || courseName
   const isFollowShareholder = userRole === "SHAREHOLDER_FOLLOW"
+  const isMainShareholder = userRole === "SHAREHOLDER_MAIN"
 
   const [showModal, setShowModal] = useState(false)
   const [selectedDate, setSelectedDate] = useState(scheduleOptions[0] || "")
@@ -73,11 +74,14 @@ export default function EnrollButton({ courseId, courseName, slug, isLoggedIn, e
   const [error, setError] = useState("")
 
   // Price logic per role
+  // SHAREHOLDER_MAIN: always free
   // SHAREHOLDER_FOLLOW: offline = 50% off base, online = free
   // Others: use finalPrice (already discounted for VIP etc.)
-  const unitPrice = isFollowShareholder
-    ? (format === "online" ? 0 : Math.round(basePrice * 0.5))
-    : finalPrice
+  const unitPrice = isMainShareholder
+    ? 0
+    : isFollowShareholder
+      ? (format === "online" ? 0 : Math.round(basePrice * 0.5))
+      : finalPrice
 
   const totalPrice = unitPrice * qty
   const transferNote = `${userPhone || 'SDT'} ${ckKeyword}`
@@ -224,6 +228,13 @@ export default function EnrollButton({ courseId, courseName, slug, isLoggedIn, e
                 </div>
 
                 <div className="space-y-4">
+                  {/* Badge miễn phí — SHAREHOLDER_MAIN */}
+                  {isMainShareholder && (
+                    <div className="rounded-xl p-3 text-center" style={{ backgroundColor: '#f5f3ff', border: '1.5px solid #e9d5ff' }}>
+                      <span className="text-sm font-semibold" style={{ color: '#7c3aed' }}>👑 Cổ đông Chính — Tất cả khóa học miễn phí</span>
+                    </div>
+                  )}
+
                   {/* Format picker — SHAREHOLDER_FOLLOW only */}
                   {isFollowShareholder && (
                     <div>
