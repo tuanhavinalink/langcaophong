@@ -23,6 +23,7 @@ export async function POST(req: Request) {
       type: data.type || "BUNGALOW",
       capacity: Number(data.capacity) || 2,
       pricePerNight: Number(data.pricePerNight),
+      memberPrice: data.memberPrice ? Number(data.memberPrice) : null,
       tipService: Number(data.tipService) || 50000,
       tipWcBedding: Number(data.tipWcBedding) || 0,
       totalUnits: Number(data.totalUnits) || 1,

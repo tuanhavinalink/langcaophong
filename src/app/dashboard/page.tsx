@@ -73,10 +73,37 @@ export default async function DashboardPage() {
     include: {
       bookings: { include: { room: true }, orderBy: { createdAt: "desc" }, take: 20 },
       courseEnrollments: { include: { course: true }, orderBy: { createdAt: "desc" } },
+      parentShareholder: { select: { id: true, name: true, shareAmount: true } },
     }
   })
 
   if (!user) redirect("/login")
+
+  // Cổ đông chưa được kích hoạt → màn hình đợi
+  if (!user.isActive) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ backgroundColor: '#f0fdf4' }}>
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-10 max-w-md w-full text-center">
+          <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5" style={{ backgroundColor: '#fef3c7' }}>
+            <span className="text-4xl">⏳</span>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Đang chờ kích hoạt</h2>
+          <p className="text-gray-600 mb-4">
+            Tài khoản <strong>{roleLabels[user.role] ?? user.role}</strong> của bạn đã được tạo thành công.<br />
+            Admin sẽ xem xét và kích hoạt quyền cổ đông trong thời gian sớm nhất.
+          </p>
+          <div className="rounded-xl p-4 mb-5 text-left space-y-1.5 text-sm" style={{ backgroundColor: '#f9fafb' }}>
+            <div className="flex justify-between"><span className="text-gray-500">Họ tên</span><span className="font-medium">{user.name}</span></div>
+            <div className="flex justify-between"><span className="text-gray-500">Email</span><span className="font-medium">{user.email}</span></div>
+            <div className="flex justify-between"><span className="text-gray-500">Loại tài khoản</span><span className="font-medium" style={{ color: '#7c3aed' }}>{roleLabels[user.role] ?? user.role}</span></div>
+          </div>
+          <p className="text-sm text-gray-500">
+            Liên hệ Hoàng Nga: <strong>0986 655 894</strong> để được hỗ trợ nhanh hơn.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   // totalSpent = chỉ tính booking đã CONFIRMED hoặc COMPLETED
   const confirmedSpent = user.bookings
@@ -157,8 +184,38 @@ export default async function DashboardPage() {
               </div>
 
               <div className="space-y-2 text-sm">
-                {user.shareAmount > 0 && (
+                {/* Cổ đông Chính: popup tổng vốn */}
+                {user.shareAmount > 0 && user.role === "SHAREHOLDER_MAIN" && (
                   <ShareCapitalPopup shareAmount={user.shareAmount} />
+                )}
+
+                {/* Cổ đông Theo: thông tin nhánh */}
+                {user.role === "SHAREHOLDER_FOLLOW" && (
+                  <div className="rounded-xl p-3 space-y-1.5" style={{ backgroundColor: '#eff6ff', border: '1px solid #bfdbfe' }}>
+                    <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#1d4ed8' }}>Nhánh Cổ Đông</div>
+                    {user.parentShareholder ? (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Thuộc nhánh</span>
+                          <span className="font-bold text-gray-900">{user.parentShareholder.name}</span>
+                        </div>
+                        {user.parentShareholder.shareAmount > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Vốn nhánh chính</span>
+                            <span className="font-medium text-gray-900">{formatCurrency(user.parentShareholder.shareAmount)}</span>
+                          </div>
+                        )}
+                        {user.shareAmount > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Bạn đóng</span>
+                            <span className="font-bold" style={{ color: '#1d4ed8' }}>{formatCurrency(user.shareAmount)}</span>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <p className="text-xs text-gray-500">Đang chờ Admin phân nhánh</p>
+                    )}
+                  </div>
                 )}
 
                 <div className="flex justify-between">

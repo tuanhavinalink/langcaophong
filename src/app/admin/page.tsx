@@ -32,7 +32,7 @@ interface BookingData {
 
 interface RoomData {
   id: string; name: string; type: string; capacity: number
-  pricePerNight: number; tipService: number; tipWcBedding: number; totalUnits: number; description: string | null
+  pricePerNight: number; memberPrice: number | null; tipService: number; tipWcBedding: number; totalUnits: number; description: string | null
   amenities: string | null; isAvailable: boolean
 }
 
@@ -104,6 +104,8 @@ export default function AdminPage() {
   const [editingMedia, setEditingMedia] = useState<Partial<MediaData> | null>(null)
   const [isNewMedia, setIsNewMedia] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [showAddMember, setShowAddMember] = useState(false)
+  const [newMember, setNewMember] = useState({ name: "", email: "", phone: "", password: "", role: "MEMBER", shareAmount: 0, parentShareholderId: "" })
 
   const role = (session?.user as any)?.role
 
@@ -149,6 +151,33 @@ export default function AdminPage() {
     setUsers(users.map(u => u.id === editingUser.id ? { ...u, ...updated } : u))
     setEditingUser(null)
   }
+    setLoading(false)
+  }
+
+  const addMember = async () => {
+    if (!newMember.name || !newMember.email || !newMember.phone || !newMember.password) return
+    setLoading(true)
+    const body: any = {
+      name: newMember.name,
+      email: newMember.email,
+      phone: newMember.phone,
+      password: newMember.password,
+      memberType: newMember.role,
+    }
+    const res = await fetch("/api/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+    if (res.ok) {
+      const { userId } = await res.json()
+      const patchBody: any = { userId, role: newMember.role, isActive: true }
+      if (newMember.shareAmount > 0) patchBody.shareAmount = newMember.shareAmount
+      if (newMember.parentShareholderId) patchBody.parentShareholderId = newMember.parentShareholderId
+      const patch = await fetch("/api/admin/users", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(patchBody) })
+      if (patch.ok) {
+        const updated = await patch.json()
+        setUsers(prev => [updated, ...prev])
+      }
+      setShowAddMember(false)
+      setNewMember({ name: "", email: "", phone: "", password: "", role: "MEMBER", shareAmount: 0, parentShareholderId: "" })
+    }
     setLoading(false)
   }
 
@@ -331,6 +360,16 @@ export default function AdminPage() {
               </div>
             )}
 
+          <div className="flex justify-end">
+            <button
+              onClick={() => setShowAddMember(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-medium"
+              style={{ backgroundColor: '#2d6a4f' }}
+            >
+              <Plus className="w-4 h-4" /> Thêm Member
+            </button>
+          </div>
+
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -451,7 +490,20 @@ export default function AdminPage() {
                   </div>
                   <p className="text-sm text-gray-500 mb-1">Sức chứa: {room.capacity} người · {room.totalUnits} phòng</p>
                   {room.description && <p className="text-xs text-gray-400 mb-2">{room.description}</p>}
-                  <div className="font-bold text-lg" style={{ color: '#2d6a4f' }}>{formatCurrency(room.pricePerNight)}<span className="text-gray-400 text-xs font-normal">/đêm</span></div>
+                  <div className="space-y-0.5">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-xs text-yellow-600 font-medium">VIP/CĐ:</span>
+                      <span className="font-bold text-base" style={{ color: '#2d6a4f' }}>{formatCurrency(room.pricePerNight)}</span>
+                      <span className="text-gray-400 text-xs">/đêm</span>
+                    </div>
+                    {room.memberPrice != null && (
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-xs text-gray-500 font-medium">Member:</span>
+                        <span className="font-semibold text-base text-gray-700">{formatCurrency(room.memberPrice)}</span>
+                        <span className="text-gray-400 text-xs">/đêm</span>
+                      </div>
+                    )}
+                  </div>
                   <div className="flex gap-2 mt-4">
                     <button onClick={() => { setIsNewRoom(false); setEditingRoom({ ...room }) }} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium border border-gray-200 hover:bg-gray-50">
                       <Edit2 className="w-3.5 h-3.5" /> Sửa
@@ -663,6 +715,51 @@ export default function AdminPage() {
         </div>
       )}
 
+      {/* Add Member Modal */}
+      {showAddMember && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Plus className="w-5 h-5" style={{ color: '#2d6a4f' }} /> Thêm Thành Viên Mới
+            </h3>
+            <div className="space-y-3">
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Họ tên *</label><input value={newMember.name} onChange={e => setNewMember({ ...newMember, name: e.target.value })} className={inputCls} placeholder="Nguyễn Văn A" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Email *</label><input type="email" value={newMember.email} onChange={e => setNewMember({ ...newMember, email: e.target.value })} className={inputCls} placeholder="email@example.com" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Số điện thoại *</label><input value={newMember.phone} onChange={e => setNewMember({ ...newMember, phone: e.target.value })} className={inputCls} placeholder="0912345678" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu *</label><input type="password" value={newMember.password} onChange={e => setNewMember({ ...newMember, password: e.target.value })} className={inputCls} placeholder="Mật khẩu ban đầu" /></div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Vai trò</label>
+                <select value={newMember.role} onChange={e => setNewMember({ ...newMember, role: e.target.value, parentShareholderId: "" })} className={inputCls}>
+                  <option value="MEMBER">Member thường</option>
+                  <option value="VIP">VIP</option>
+                  <option value="SHAREHOLDER_MAIN">Cổ đông Chính</option>
+                  <option value="SHAREHOLDER_FOLLOW">Cổ đông Theo</option>
+                  <option value="ADMIN">Admin</option>
+                </select>
+              </div>
+              {(newMember.role === "SHAREHOLDER_MAIN" || newMember.role === "SHAREHOLDER_FOLLOW") && (
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Vốn đầu tư (VNĐ)</label><input type="number" min="0" value={newMember.shareAmount || ""} onChange={e => setNewMember({ ...newMember, shareAmount: Number(e.target.value) })} className={inputCls} placeholder="650000000" /></div>
+              )}
+              {newMember.role === "SHAREHOLDER_FOLLOW" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nhánh Cổ đông Chính</label>
+                  <select value={newMember.parentShareholderId} onChange={e => setNewMember({ ...newMember, parentShareholderId: e.target.value })} className={inputCls}>
+                    <option value="">— Chưa phân nhánh —</option>
+                    {mainShareholders.map(m => (
+                      <option key={m.id} value={m.id}>{m.name} ({formatCurrency(m.shareAmount)})</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+            <div className="flex gap-3 mt-5">
+              <button onClick={addMember} disabled={loading || !newMember.name || !newMember.email || !newMember.phone || !newMember.password} className="flex-1 py-2.5 rounded-xl text-white font-medium text-sm disabled:opacity-50" style={{ backgroundColor: '#2d6a4f' }}>{loading ? 'Đang tạo...' : 'Tạo Tài Khoản'}</button>
+              <button onClick={() => setShowAddMember(false)} className="flex-1 py-2.5 rounded-xl font-medium text-sm border border-gray-200 text-gray-700">Hủy</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Edit User Modal */}
       {editingUser && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -736,7 +833,16 @@ export default function AdminPage() {
                   </select>
                 </div>
                 <div><label className="block text-sm font-medium text-gray-700 mb-1">Sức chứa (người)</label><input type="number" min="1" value={editingRoom.capacity || 2} onChange={e => setEditingRoom({ ...editingRoom, capacity: Number(e.target.value) })} className={inputCls} /></div>
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">Giá/đêm (đ)</label><input type="number" min="0" value={editingRoom.pricePerNight || 0} onChange={e => setEditingRoom({ ...editingRoom, pricePerNight: Number(e.target.value) })} className={inputCls} /></div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Giá VIP/CĐ (đ/đêm)</label>
+                  <input type="number" min="0" value={editingRoom.pricePerNight || 0} onChange={e => setEditingRoom({ ...editingRoom, pricePerNight: Number(e.target.value) })} className={inputCls} />
+                  <p className="text-xs text-gray-400 mt-0.5">Áp dụng cho VIP & Cổ đông</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Giá Member thường (đ/đêm)</label>
+                  <input type="number" min="0" value={(editingRoom as RoomData).memberPrice ?? ""} onChange={e => setEditingRoom({ ...editingRoom, memberPrice: e.target.value === "" ? null : Number(e.target.value) } as Partial<RoomData>)} className={inputCls} placeholder="Để trống = dùng giá VIP" />
+                  <p className="text-xs text-gray-400 mt-0.5">Để trống nếu giá như nhau</p>
+                </div>
                 <div><label className="block text-sm font-medium text-gray-700 mb-1">Tổng số phòng / lều</label><input type="number" min="1" value={editingRoom.totalUnits || 1} onChange={e => setEditingRoom({ ...editingRoom, totalUnits: Number(e.target.value) })} className={inputCls} /></div>
                 <div className="col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Phí Tip WC + ga gối (đ)</label><input type="number" min="0" value={editingRoom.tipWcBedding || 0} onChange={e => setEditingRoom({ ...editingRoom, tipWcBedding: Number(e.target.value) })} className={inputCls} placeholder="0" /></div>
               </div>

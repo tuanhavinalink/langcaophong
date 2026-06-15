@@ -14,7 +14,8 @@ export async function GET(req: NextRequest) {
       id: true, name: true, email: true, phone: true, role: true,
       totalSpent: true, sharePercent: true, shareAmount: true,
       affiliateCode: true, affiliateBalance: true, freeCoursesLeft: true,
-      courseDiscount: true, createdAt: true
+      courseDiscount: true, isActive: true, parentShareholderId: true, createdAt: true,
+      parentShareholder: { select: { id: true, name: true } }
     }
   })
 
@@ -28,11 +29,23 @@ export async function PATCH(req: NextRequest) {
   }
 
   const data = await req.json()
-  const { userId, ...updates } = data
+  const { userId, parentShareholderId, ...rest } = data
+
+  const updateData: any = { ...rest }
+  if (parentShareholderId !== undefined) {
+    updateData.parentShareholderId = parentShareholderId || null
+  }
 
   const user = await prisma.user.update({
     where: { id: userId },
-    data: updates
+    data: updateData,
+    select: {
+      id: true, name: true, email: true, phone: true, role: true,
+      totalSpent: true, sharePercent: true, shareAmount: true,
+      affiliateCode: true, affiliateBalance: true, freeCoursesLeft: true,
+      courseDiscount: true, isActive: true, parentShareholderId: true, createdAt: true,
+      parentShareholder: { select: { id: true, name: true } }
+    }
   })
 
   return NextResponse.json(user)

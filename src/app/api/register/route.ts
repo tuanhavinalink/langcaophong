@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
         role: memberType === "SHAREHOLDER_MAIN" ? "SHAREHOLDER_MAIN"
              : memberType === "SHAREHOLDER_FOLLOW" ? "SHAREHOLDER_FOLLOW"
              : "MEMBER",
+        isActive: memberType === "MEMBER",
       }
     })
 

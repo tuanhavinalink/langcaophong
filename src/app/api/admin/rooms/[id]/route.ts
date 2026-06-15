@@ -19,6 +19,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       type: data.type,
       capacity: data.capacity !== undefined ? Number(data.capacity) : undefined,
       pricePerNight: data.pricePerNight !== undefined ? Number(data.pricePerNight) : undefined,
+      memberPrice: data.memberPrice !== undefined ? (data.memberPrice === null || data.memberPrice === "" ? null : Number(data.memberPrice)) : undefined,
       tipService: data.tipService !== undefined ? Number(data.tipService) : undefined,
       tipWcBedding: data.tipWcBedding !== undefined ? Number(data.tipWcBedding) : undefined,
       totalUnits: data.totalUnits !== undefined ? Number(data.totalUnits) : undefined,
