@@ -58,7 +58,7 @@ export default function HomePage() {
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url('/z7008286408607_50ea99bdf22f4c16d77d3f514847fea6.jpg')` }}
+          style={{ backgroundImage: `url('/z7056126901427_4b21cec6241c5f5ef1637af674801c17.jpg')` }}
         />
         <div className="absolute inset-0 hero-gradient" />
 
@@ -82,8 +82,7 @@ export default function HomePage() {
             Chốn Bình Yên Giữa Núi Rừng
           </p>
           <p className="text-lg text-green-100 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Khu nghỉ dưỡng sinh thái ôm trọn khung cảnh sông núi, mây trời và hồ thung lũng.
-            Không gian hoàn hảo để tái tạo năng lượng và kết nối với thiên nhiên.
+            Khu Làng Nghỉ dưỡng duy nhất trên Thế giới <strong className="text-white">Miễn phí đặt phòng qua đêm</strong> dành cho Cư dân Làng và khách mời — Đăng ký thành viên để được Booking miễn phí.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
