@@ -16,14 +16,14 @@ function fmtDate(d: string | Date | null | undefined) {
 }
 
 const statusColors: Record<string, string> = {
-  ENROLLED: "bg-green-100 text-green-700",
-  PENDING: "bg-orange-100 text-orange-700",
+  ENROLLED: "bg-orange-100 text-orange-700",
+  CONFIRMED: "bg-green-100 text-green-700",
   CANCELLED: "bg-red-100 text-red-700",
   COMPLETED: "bg-blue-100 text-blue-700",
 }
 const statusLabels: Record<string, string> = {
-  ENROLLED: "Đã đăng ký",
-  PENDING: "Chờ thanh toán",
+  ENROLLED: "Chờ cọc & xác nhận",
+  CONFIRMED: "Đã xác nhận",
   CANCELLED: "Đã hủy",
   COMPLETED: "Hoàn thành",
 }
@@ -58,7 +58,7 @@ function CopyButton({ text }: { text: string }) {
 function EnrollmentCard({ enrollment, userPhone }: { enrollment: Enrollment; userPhone?: string | null }) {
   const [open, setOpen] = useState(false)
 
-  const needsPayment = enrollment.paidPrice > 0 && enrollment.status === "ENROLLED"
+  const needsPayment = enrollment.paidPrice > 0 && (enrollment.status === "ENROLLED" || enrollment.status === "CONFIRMED")
   const transferNote = `Tien an Khoa hoc ${userPhone || ''}`
   const qrUrl = `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT_NO}-compact2.png?amount=${enrollment.paidPrice}&addInfo=${encodeURIComponent(transferNote)}&accountName=${encodeURIComponent(ACCOUNT_NAME)}`
 

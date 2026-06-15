@@ -37,7 +37,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
     ? await prisma.courseEnrollment.findFirst({ where: { userId, courseId: course.id } })
     : null
 
-  const user = userId ? await prisma.user.findUnique({ where: { id: userId }, select: { freeCoursesLeft: true, courseDiscount: true, phone: true } }) : null
+  const user = userId ? await prisma.user.findUnique({ where: { id: userId }, select: { freeCoursesLeft: true, courseDiscount: true, phone: true, role: true } }) : null
 
   const gradient = gradients[slug] || "from-green-500 to-emerald-600"
   const schedules = fixedSchedules[slug] || []
@@ -141,6 +141,8 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
                 existingEnrollment={existingEnrollment ? { id: existingEnrollment.id, status: existingEnrollment.status } : null}
                 finalPrice={finalPrice}
                 userPhone={user?.phone ?? null}
+                userRole={user?.role ?? null}
+                basePrice={course.price}
               />
 
               <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">

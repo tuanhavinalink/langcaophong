@@ -12,13 +12,11 @@ function fmt(n: number) {
   return new Intl.NumberFormat('vi-VN').format(n) + " đ"
 }
 
-// Lịch cố định theo slug
 const SCHEDULES: Record<string, string[]> = {
   "vi-mo": ["20 – 21/06/2026", "04 – 05/07/2026"],
   "solo": ["27 – 28/06/2026"],
 }
 
-// Keyword cho nội dung CK
 const CK_NOTE: Record<string, string> = {
   "vi-mo": "Vi Mo",
   "solo": "Solo",
@@ -32,11 +30,13 @@ interface Props {
   isLoggedIn: boolean
   existingEnrollment: { id: string; status: string } | null
   finalPrice: number
+  basePrice: number
   userPhone?: string | null
+  userRole?: string | null
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  ENROLLED: "Đã đăng ký · Chờ thanh toán",
+  ENROLLED: "Chờ cọc & xác nhận",
   CONFIRMED: "Đã xác nhận",
   COMPLETED: "Hoàn thành",
   CANCELLED: "Đã hủy",
@@ -56,31 +56,42 @@ function CopyBtn({ text }: { text: string }) {
   )
 }
 
-export default function EnrollButton({ courseId, courseName, slug, isLoggedIn, existingEnrollment, finalPrice, userPhone }: Props) {
+export default function EnrollButton({ courseId, courseName, slug, isLoggedIn, existingEnrollment, finalPrice, basePrice, userPhone, userRole }: Props) {
   const router = useRouter()
   const scheduleOptions = SCHEDULES[slug] || []
   const ckKeyword = CK_NOTE[slug] || courseName
+  const isFollowShareholder = userRole === "SHAREHOLDER_FOLLOW"
 
   const [showModal, setShowModal] = useState(false)
   const [selectedDate, setSelectedDate] = useState(scheduleOptions[0] || "")
   const [freeDate, setFreeDate] = useState("")
   const [qty, setQty] = useState(1)
   const [note, setNote] = useState("")
+  const [format, setFormat] = useState<"offline" | "online">("offline")
   const [loading, setLoading] = useState(false)
   const [enrollmentData, setEnrollmentData] = useState<{ paidPrice: number; transferNote: string; qrUrl: string } | null>(null)
   const [error, setError] = useState("")
 
-  const totalPrice = finalPrice * qty
+  // Price logic per role
+  // SHAREHOLDER_FOLLOW: offline = 50% off base, online = free
+  // Others: use finalPrice (already discounted for VIP etc.)
+  const unitPrice = isFollowShareholder
+    ? (format === "online" ? 0 : Math.round(basePrice * 0.5))
+    : finalPrice
+
+  const totalPrice = unitPrice * qty
   const transferNote = `${userPhone || 'SDT'} ${ckKeyword}`
   const qrUrl = totalPrice > 0
     ? `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT_NO}-compact2.png?amount=${totalPrice}&addInfo=${encodeURIComponent(transferNote)}&accountName=${encodeURIComponent(ACCOUNT_NAME)}`
     : ""
 
   if (existingEnrollment && existingEnrollment.status !== "CANCELLED") {
+    const label = STATUS_LABELS[existingEnrollment.status] || existingEnrollment.status
+    const isPending = existingEnrollment.status === "ENROLLED"
     return (
-      <div className="w-full py-3.5 rounded-xl text-center font-semibold text-base flex items-center justify-center gap-2 bg-green-50 border-2 border-green-200 text-green-700">
+      <div className={`w-full py-3.5 rounded-xl text-center font-semibold text-base flex items-center justify-center gap-2 border-2 ${isPending ? 'bg-orange-50 border-orange-200 text-orange-700' : 'bg-green-50 border-green-200 text-green-700'}`}>
         <CheckCircle className="w-5 h-5" />
-        {STATUS_LABELS[existingEnrollment.status] || existingEnrollment.status}
+        {label}
       </div>
     )
   }
@@ -88,13 +99,16 @@ export default function EnrollButton({ courseId, courseName, slug, isLoggedIn, e
   const handleSubmit = async () => {
     setLoading(true); setError("")
     const chosenDate = scheduleOptions.length > 0 ? selectedDate : freeDate
+    const formatLabel = isFollowShareholder
+      ? (format === "online" ? "Online / Zoom" : "Trực tiếp tại Làng (-50%)")
+      : "Trực tiếp tại Làng"
     const res = await fetch("/api/courses/enroll", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         courseId,
         preferredDate: chosenDate,
-        format: "Trực tiếp tại Làng",
+        format: formatLabel,
         note: `${qty} người${note ? ' · ' + note : ''}`,
         quantity: qty,
         totalPrice,
@@ -134,10 +148,13 @@ export default function EnrollButton({ courseId, courseName, slug, isLoggedIn, e
                     <CheckCircle className="w-8 h-8" style={{ color: '#2d6a4f' }} />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900">Đăng Ký Thành Công!</h3>
-                  <p className="text-gray-500 text-sm mt-1">Vui lòng chuyển khoản để hoàn tất đăng ký</p>
+                  <p className="text-sm mt-1 font-semibold text-orange-600">⏳ Chờ cọc & xác nhận</p>
+                  {enrollmentData.paidPrice > 0 && (
+                    <p className="text-gray-500 text-sm mt-1">Vui lòng chuyển khoản để hoàn tất đăng ký</p>
+                  )}
                 </div>
 
-                {enrollmentData.paidPrice > 0 && (
+                {enrollmentData.paidPrice > 0 ? (
                   <div className="rounded-xl overflow-hidden border-2 border-green-200 mb-4">
                     <div className="px-4 py-2.5 text-center font-semibold text-sm" style={{ backgroundColor: '#f0fdf4', color: '#166534' }}>
                       💳 Chuyển khoản học phí {fmt(enrollmentData.paidPrice)}
@@ -181,6 +198,12 @@ export default function EnrollButton({ courseId, courseName, slug, isLoggedIn, e
                       </p>
                     </div>
                   </div>
+                ) : (
+                  <div className="rounded-xl p-4 text-center mb-4" style={{ backgroundColor: '#f0fdf4', border: '1.5px solid #bbf7d0' }}>
+                    <div className="text-2xl mb-1">🎉</div>
+                    <div className="font-bold text-green-800">Miễn phí — Không cần chuyển khoản</div>
+                    <div className="text-sm text-green-700 mt-1">Làng sẽ gửi link Zoom sau khi xác nhận</div>
+                  </div>
                 )}
 
                 <div className="flex gap-3">
@@ -201,6 +224,27 @@ export default function EnrollButton({ courseId, courseName, slug, isLoggedIn, e
                 </div>
 
                 <div className="space-y-4">
+                  {/* Format picker — SHAREHOLDER_FOLLOW only */}
+                  {isFollowShareholder && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Hình thức tham gia</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <label className={`flex flex-col items-center gap-1 p-3 rounded-xl border-2 cursor-pointer transition-colors ${format === 'offline' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:bg-gray-50'}`}>
+                          <input type="radio" name="format" className="sr-only" checked={format === 'offline'} onChange={() => setFormat('offline')} />
+                          <span className="text-lg">🏡</span>
+                          <span className="text-sm font-semibold text-gray-900">Lên Làng</span>
+                          <span className="text-xs font-bold" style={{ color: '#2d6a4f' }}>-50% = {fmt(Math.round(basePrice * 0.5))}</span>
+                        </label>
+                        <label className={`flex flex-col items-center gap-1 p-3 rounded-xl border-2 cursor-pointer transition-colors ${format === 'online' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'}`}>
+                          <input type="radio" name="format" className="sr-only" checked={format === 'online'} onChange={() => setFormat('online')} />
+                          <span className="text-lg">💻</span>
+                          <span className="text-sm font-semibold text-gray-900">Online / Zoom</span>
+                          <span className="text-xs font-bold text-blue-600">Miễn phí</span>
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Schedule picker */}
                   {scheduleOptions.length > 0 ? (
                     <div>
@@ -248,12 +292,18 @@ export default function EnrollButton({ courseId, courseName, slug, isLoggedIn, e
                   </div>
 
                   {/* Price summary */}
-                  <div className="p-3.5 rounded-xl" style={{ backgroundColor: '#f0fdf4' }}>
-                    <div className="flex justify-between text-sm text-gray-600 mb-1">
-                      <span>{fmt(finalPrice)} × {qty} người</span>
-                      <span className="font-medium">{fmt(totalPrice)}</span>
+                  <div className="p-3.5 rounded-xl space-y-1" style={{ backgroundColor: '#f0fdf4' }}>
+                    {isFollowShareholder && (
+                      <div className="flex justify-between text-xs text-gray-500 mb-1">
+                        <span>Giá gốc</span>
+                        <span className="line-through">{fmt(basePrice)} × {qty}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-sm text-gray-600">
+                      <span>{unitPrice === 0 ? 'Miễn phí' : fmt(unitPrice)} × {qty} người</span>
+                      <span className="font-medium">{unitPrice === 0 ? 'Miễn phí' : fmt(totalPrice)}</span>
                     </div>
-                    <div className="flex justify-between font-bold">
+                    <div className="flex justify-between font-bold pt-1 border-t border-green-100">
                       <span className="text-gray-900">Tổng học phí</span>
                       <span className="text-lg" style={{ color: '#2d6a4f' }}>
                         {totalPrice === 0 ? 'Miễn phí' : fmt(totalPrice)}
