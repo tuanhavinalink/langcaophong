@@ -63,6 +63,7 @@ export default function BookingPage() {
   const [checkIn, setCheckIn] = useState("")
   const [checkOut, setCheckOut] = useState("")
   const [guests, setGuests] = useState(1)
+  const [children, setChildren] = useState(0)
   const [selectedServices, setSelectedServices] = useState<Map<string, number>>(new Map())
   const [notes, setNotes] = useState("")
   const [loading, setLoading] = useState(false)
@@ -106,11 +107,17 @@ export default function BookingPage() {
 
   const hasQty = (priceUnit: string) => priceUnit === "booking" || priceUnit === "person"
 
+  // Food services: children 6-12 = 70% of adult price; other services: adults only
+  function effectiveGuests(svc: Service): number {
+    if (svc.category === "food") return guests + children * 0.7
+    return guests
+  }
+
   const servicesPrice = services
     .filter(s => selectedServices.has(s.id))
     .reduce((sum, s) => {
       const qty = hasQty(s.priceUnit) ? (selectedServices.get(s.id) || 1) : 1
-      return sum + calcServicePrice(s, guests, nights, roomQty) * qty
+      return sum + calcServicePrice(s, effectiveGuests(s), nights, roomQty) * qty
     }, 0)
 
   const totalPrice = basePrice + tipWcBedding + servicesPrice
@@ -138,10 +145,11 @@ export default function BookingPage() {
       body: JSON.stringify({
         roomId: selectedRoom.id,
         checkIn, checkOut, guests,
+        childrenCount: children,
         roomQty,
         selectedServices: Array.from(selectedServices.entries()).map(([id, qty]) => {
           const svc = services.find(s => s.id === id)
-          const itemPrice = svc ? calcServicePrice(svc, guests, nights, roomQty) * (hasQty(svc.priceUnit) ? qty : 1) : 0
+          const itemPrice = svc ? calcServicePrice(svc, effectiveGuests(svc), nights, roomQty) * (hasQty(svc.priceUnit) ? qty : 1) : 0
           return { id, qty, price: itemPrice }
         }),
         basePrice, tipWcBedding, servicesPrice,
@@ -202,13 +210,27 @@ export default function BookingPage() {
                   <input type="date" value={checkOut} min={checkIn || new Date().toISOString().split('T')[0]} onChange={e => setCheckOut(e.target.value)} required className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none text-gray-900" />
                 </div>
               </div>
-              <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  <Users className="w-4 h-4 inline mr-1" />Số khách
-                </label>
-                <select value={guests} onChange={e => setGuests(Number(e.target.value))} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none text-gray-900">
-                  {Array.from({length: 30}, (_, i) => i + 1).map(n => <option key={n} value={n}>{n} khách</option>)}
-                </select>
+              <div className="mt-4 grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    <Users className="w-4 h-4 inline mr-1" />Khách người lớn
+                  </label>
+                  <select value={guests} onChange={e => setGuests(Number(e.target.value))} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none text-gray-900">
+                    {Array.from({length: 30}, (_, i) => i + 1).map(n => <option key={n} value={n}>{n} khách</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    <Users className="w-4 h-4 inline mr-1" />Trẻ em 6–12 tuổi
+                    <span className="ml-1 text-xs font-normal text-gray-400">(0–5 tuổi miễn phí)</span>
+                  </label>
+                  <select value={children} onChange={e => setChildren(Number(e.target.value))} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none text-gray-900">
+                    {Array.from({length: 16}, (_, i) => i).map(n => <option key={n} value={n}>{n === 0 ? 'Không có' : `${n} trẻ em`}</option>)}
+                  </select>
+                  {children > 0 && (
+                    <p className="text-xs text-orange-600 mt-1">🍽️ Dịch vụ ăn uống trẻ em = 70% giá người lớn</p>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -371,6 +393,7 @@ export default function BookingPage() {
               {selectedRoom ? (
                 <div className="space-y-2 text-sm">
                   <div className="font-medium text-gray-900">{selectedRoom.name} × {roomQty}</div>
+                  <div className="text-xs text-gray-500">{guests} người lớn{children > 0 ? ` · ${children} trẻ em (6–12t)` : ''}</div>
                   {nights > 0 && (
                     <div className="flex justify-between items-baseline">
                       {isFreeRoom ? (
@@ -394,7 +417,7 @@ export default function BookingPage() {
                   )}
                   {services.filter(s => selectedServices.has(s.id)).map(svc => {
                     const qty = hasQty(svc.priceUnit) ? (selectedServices.get(svc.id) || 1) : 1
-                    const lineTotal = calcServicePrice(svc, guests, nights, roomQty) * qty
+                    const lineTotal = calcServicePrice(svc, effectiveGuests(svc), nights, roomQty) * qty
                     return (
                       <div key={svc.id} className="flex justify-between text-gray-600">
                         <span>{svc.icon} {svc.name}{qty > 1 ? ` ×${qty}` : ''}</span>
