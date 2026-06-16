@@ -562,10 +562,9 @@ export default function AdminPage() {
             </div>
           </div>
         )}
-      </div>
 
-      {/* Courses Tab */}
-      {tab === "courses" && (
+        {/* Courses Tab */}
+        {tab === "courses" && (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -1116,6 +1115,7 @@ export default function AdminPage() {
           )}
         </div>
       )}
+      </div>
     </div>
   )
 }
