@@ -207,7 +207,7 @@ export default function BookingPage() {
                   <Users className="w-4 h-4 inline mr-1" />Số khách
                 </label>
                 <select value={guests} onChange={e => setGuests(Number(e.target.value))} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none text-gray-900">
-                  {[1,2,3,4,5,6,8,10,12].map(n => <option key={n} value={n}>{n} khách</option>)}
+                  {Array.from({length: 30}, (_, i) => i + 1).map(n => <option key={n} value={n}>{n} khách</option>)}
                 </select>
               </div>
             </div>
