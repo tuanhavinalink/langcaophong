@@ -31,6 +31,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 import { Clock, Users, Star, Check, BookOpen, ArrowLeft, User, Gift, Calendar } from "lucide-react"
 import EnrollButton from "@/components/EnrollButton"
+import CoursePriceCard from "@/components/CoursePriceCard"
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount)
@@ -124,87 +125,25 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
             </div>
 
             {/* Price Card */}
-            <div className="bg-white rounded-2xl p-6 shadow-xl">
-              <div className="text-center mb-5">
-                <p className="text-gray-500 text-sm mb-1">
-                  {slug === "trai-he" ? "Học phí gói đầy đủ (5 ngày)" : "Học phí ăn ở tại Làng"}
-                </p>
-                <div className="text-4xl font-bold mb-1" style={{ color: '#2d6a4f' }}>{formatCurrency(course.price)}</div>
-                {slug === "trai-he" && (
-                  <p className="text-xs text-gray-400 mt-1">Gói cơ bản từ 3.000.000 đ — xem chi tiết bên dưới</p>
-                )}
-              </div>
-
-              {/* Register options */}
-              {registerOptions.length > 0 && (
-                <div className="mb-4 space-y-2">
-                  {registerOptions.map((opt: any, i: number) => (
-                    <div key={i} className="flex justify-between items-center text-sm px-3 py-2 rounded-lg bg-gray-50 border border-gray-100">
-                      <span className="text-gray-700 font-medium">{opt.type}</span>
-                      <span style={{ color: opt.price ? '#2d6a4f' : '#6b7280' }} className="font-semibold">
-                        {opt.price ? formatCurrency(opt.price) : (opt.label || "Liên hệ")}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Role pricing badge — hiển thị ngoài form */}
-              {user?.role === "SHAREHOLDER_MAIN" && (
-                <div className="mb-3 rounded-xl p-3 text-sm space-y-1" style={{ backgroundColor: '#f5f3ff', border: '1.5px solid #e9d5ff' }}>
-                  <div className="font-semibold" style={{ color: '#7c3aed' }}>👑 Quyền lợi Cổ đông Chính</div>
-                  {priorEnrollmentCount === 0 ? (
-                    <>
-                      <div className="text-gray-600">Người 1: <strong className="text-green-700">Miễn phí</strong> (1 lần/khóa học)</div>
-                      <div className="text-gray-600">Người 2 trở đi: <strong style={{ color: '#7c3aed' }}>-50% = {formatCurrency(Math.round(course.price * 0.5))}/người</strong></div>
-                    </>
-                  ) : (
-                    <div className="text-gray-600">Đã dùng suất miễn phí · Lần này: <strong style={{ color: '#7c3aed' }}>-50% = {formatCurrency(Math.round(course.price * 0.5))}/người</strong></div>
-                  )}
-                </div>
-              )}
-              {user?.role === "SHAREHOLDER_FOLLOW" && (
-                <div className="mb-3 rounded-xl p-3 text-sm space-y-1" style={{ backgroundColor: '#eff6ff', border: '1.5px solid #bfdbfe' }}>
-                  <div className="font-semibold text-blue-700">🤝 Quyền lợi Cổ đông Shares</div>
-                  <div className="text-gray-600">Lên Làng (offline): <strong className="text-blue-700">-50% = {formatCurrency(Math.round(course.price * 0.5))}/người</strong></div>
-                  <div className="text-gray-600">Online / Zoom: <strong className="text-green-700">Miễn phí</strong></div>
-                </div>
-              )}
-              {user?.role === "VIP" && (
-                <div className="mb-3 rounded-xl p-3 text-sm space-y-1" style={{ backgroundColor: '#fefce8', border: '1.5px solid #fde68a' }}>
-                  <div className="font-semibold text-yellow-700">⭐ Quyền lợi VIP</div>
-                  <div className="text-gray-600">Giảm <strong className="text-yellow-700">30%</strong> — chỉ còn <strong className="text-green-700">{formatCurrency(Math.round(course.price * 0.7))}/người</strong></div>
-                </div>
-              )}
-
-              <EnrollButton
-                courseId={course.id}
-                courseName={course.name}
-                slug={slug}
-                isLoggedIn={!!userId}
-                existingEnrollment={existingEnrollment ? { id: existingEnrollment.id, status: existingEnrollment.status } : null}
-                finalPrice={finalPrice}
-                userPhone={user?.phone ?? null}
-                userRole={user?.role ?? null}
-                basePrice={course.price}
-                usedFreeSlot={priorEnrollmentCount > 0}
-              />
-
-              <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Check className="w-4 h-4 text-green-600 shrink-0" /> Bao gồm chỗ ở & ăn uống tại Làng
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Check className="w-4 h-4 text-green-600 shrink-0" /> Coaching 1-1 miễn phí
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Check className="w-4 h-4 text-green-600 shrink-0" /> Có thể học Online (LMS / Zoom)
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Check className="w-4 h-4 text-green-600 shrink-0" /> Chứng nhận hoàn thành khóa học
-                </div>
-              </div>
-            </div>
+            <CoursePriceCard
+              courseId={course.id}
+              courseName={course.name}
+              slug={slug}
+              isLoggedIn={!!userId}
+              existingEnrollment={existingEnrollment ? { id: existingEnrollment.id, status: existingEnrollment.status } : null}
+              basePrice={course.price}
+              registerOptions={registerOptions}
+              userRole={user?.role ?? null}
+              userPhone={user?.phone ?? null}
+              usedFreeSlot={priorEnrollmentCount > 0}
+              priorEnrollmentCount={priorEnrollmentCount}
+              checkItems={[
+                "Bao gồm chỗ ở & ăn uống tại Làng",
+                "Coaching 1-1 miễn phí",
+                "Có thể học Online (LMS / Zoom)",
+                "Chứng nhận hoàn thành khóa học",
+              ]}
+            />
           </div>
         </div>
       </div>
