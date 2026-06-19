@@ -20,6 +20,10 @@ export async function POST(req: NextRequest) {
 
     const hashedPassword = await bcrypt.hash(password, 12)
     const affiliateCode = Math.random().toString(36).substring(2, 8).toUpperCase()
+    const role = memberType === "SHAREHOLDER_MAIN" ? "SHAREHOLDER_MAIN"
+               : memberType === "SHAREHOLDER_FOLLOW" ? "SHAREHOLDER_FOLLOW"
+               : "MEMBER"
+    const affiliateRate = role === "MEMBER" ? 0.10 : 0.15
 
     const user = await prisma.user.create({
       data: {
@@ -28,9 +32,8 @@ export async function POST(req: NextRequest) {
         phone,
         password: hashedPassword,
         affiliateCode,
-        role: memberType === "SHAREHOLDER_MAIN" ? "SHAREHOLDER_MAIN"
-             : memberType === "SHAREHOLDER_FOLLOW" ? "SHAREHOLDER_FOLLOW"
-             : "MEMBER",
+        affiliateRate,
+        role,
         isActive: memberType === "MEMBER",
         parentShareholderId: memberType === "SHAREHOLDER_FOLLOW" && parentShareholderId ? parentShareholderId : null,
       }

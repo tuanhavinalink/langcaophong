@@ -292,7 +292,7 @@ export default function BookingPage() {
                               )
                             })()}
                             {room.tipWcBedding > 0 && (
-                              <div className="text-xs text-gray-500 mt-0.5">🛁 Tip WC + ga gối: {formatCurrency(room.tipWcBedding)}/phòng (bắt buộc)</div>
+                              <div className="text-xs text-gray-500 mt-0.5">🛁 Tip cho Dân Làng phục vụ: {formatCurrency(room.tipWcBedding)}/bungalow (bắt buộc)</div>
                             )}
                           </div>
 
@@ -411,7 +411,7 @@ export default function BookingPage() {
                   )}
                   {tipWcBedding > 0 && (
                     <div className="flex justify-between items-baseline">
-                      <span className="text-xs text-gray-500">🛁 Tip WC + ga gối ({roomQty} phòng)</span>
+                      <span className="text-xs text-gray-500">🛁 Tip cho Dân Làng phục vụ ({roomQty} bungalow)</span>
                       <span className="text-xs font-semibold text-gray-700">{formatCurrency(tipWcBedding)}</span>
                     </div>
                   )}

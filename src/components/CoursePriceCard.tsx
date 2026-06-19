@@ -7,7 +7,7 @@ function fmt(n: number) {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n)
 }
 
-interface Option { type: string; price: number }
+interface Option { type: string; label?: string; price: number }
 
 interface Props {
   courseId: string
@@ -77,7 +77,7 @@ export default function CoursePriceCard({
                   className="accent-green-700 w-4 h-4"
                 />
                 <span className={`text-sm font-medium ${selectedIdx === i ? 'text-gray-900' : 'text-gray-600'}`}>
-                  {opt.type}
+                  {opt.label || opt.type}
                 </span>
               </div>
               <span className="font-bold text-sm shrink-0" style={{ color: selectedIdx === i ? '#2d6a4f' : '#6b7280' }}>

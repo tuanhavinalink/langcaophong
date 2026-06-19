@@ -252,7 +252,7 @@ export default async function DashboardPage() {
 
               {user.role === "MEMBER" && confirmedSpent < 10_000_000 && user.shareAmount === 0 && (
                 <div className="mt-4 p-3 rounded-xl text-xs" style={{ backgroundColor: '#f0fdf4' }}>
-                  <p className="text-gray-600">Chi tiêu {formatCurrency(10_000_000 - confirmedSpent)} nữa để lên <strong style={{ color: '#2d6a4f' }}>VIP</strong> và nhận giảm 30% tất cả khóa học!</p>
+                  <p className="text-gray-600">Chi tiêu {formatCurrency(10_000_000 - confirmedSpent)} nữa để lên <strong style={{ color: '#2d6a4f' }}>VIP</strong> và nhận giảm 30% tất cả khóa học + được đặt phòng miễn phí không hạn chế!</p>
                 </div>
               )}
             </div>

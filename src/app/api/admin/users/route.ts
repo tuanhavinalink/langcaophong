@@ -35,6 +35,10 @@ export async function PATCH(req: NextRequest) {
   if (parentShareholderId !== undefined) {
     updateData.parentShareholderId = parentShareholderId || null
   }
+  // Sync affiliateRate when role changes
+  if (rest.role) {
+    updateData.affiliateRate = rest.role === "MEMBER" ? 0.10 : 0.15
+  }
 
   const user = await prisma.user.update({
     where: { id: userId },

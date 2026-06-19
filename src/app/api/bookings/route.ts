@@ -97,8 +97,31 @@ export async function PATCH(req: NextRequest) {
     if (updatedUser.totalSpent >= 10_000_000 && updatedUser.role === "MEMBER") {
       await prisma.user.update({
         where: { id: existing.userId },
-        data: { role: "VIP", courseDiscount: 0.3 }
+        data: { role: "VIP", affiliateRate: 0.15 }
       })
+    }
+
+    // Hoa hồng affiliate: nếu khách được giới thiệu bởi affiliate
+    if (updatedUser.referredBy) {
+      const referrer = await prisma.user.findUnique({ where: { affiliateCode: updatedUser.referredBy } })
+      if (referrer) {
+        const commission = Math.round(existing.totalPrice * referrer.affiliateRate)
+        if (commission > 0) {
+          await prisma.affiliateEarning.create({
+            data: {
+              userId: referrer.id,
+              referredUserId: existing.userId,
+              bookingId: existing.id,
+              amount: commission,
+              status: "CONFIRMED",
+            }
+          })
+          await prisma.user.update({
+            where: { id: referrer.id },
+            data: { affiliateBalance: { increment: commission } }
+          })
+        }
+      }
     }
   }
 

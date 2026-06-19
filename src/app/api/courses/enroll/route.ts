@@ -73,7 +73,30 @@ export async function PATCH(req: Request) {
   const enrollment = await prisma.courseEnrollment.update({
     where: { id: enrollmentId },
     data: { status },
-    include: { course: true, user: { select: { name: true, email: true, phone: true } } }
+    include: { course: true, user: { select: { id: true, name: true, email: true, phone: true, referredBy: true } } }
   })
+
+  // Hoa hồng affiliate khi CONFIRMED
+  if (status === "CONFIRMED" && enrollment.paidPrice > 0 && enrollment.user.referredBy) {
+    const referrer = await prisma.user.findUnique({ where: { affiliateCode: enrollment.user.referredBy } })
+    if (referrer) {
+      const commission = Math.round(enrollment.paidPrice * referrer.affiliateRate)
+      if (commission > 0) {
+        await prisma.affiliateEarning.create({
+          data: {
+            userId: referrer.id,
+            referredUserId: enrollment.user.id,
+            amount: commission,
+            status: "CONFIRMED",
+          }
+        })
+        await prisma.user.update({
+          where: { id: referrer.id },
+          data: { affiliateBalance: { increment: commission } }
+        })
+      }
+    }
+  }
+
   return NextResponse.json(enrollment)
 }

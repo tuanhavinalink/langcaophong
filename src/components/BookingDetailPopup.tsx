@@ -247,7 +247,7 @@ function BookingCard({ booking, userPhone }: { booking: Booking; userPhone?: str
 
                   {/* Tip WC */}
                   {(booking.tipWcBedding ?? 0) > 0 && (
-                    <BookingRow label="🛁 Tip WC + ga gối" value={fmt(booking.tipWcBedding!)} />
+                    <BookingRow label="🛁 Tip cho Dân Làng phục vụ" value={fmt(booking.tipWcBedding!)} />
                   )}
 
                   {/* Individual services */}
