@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import Link from "next/link"
+import Image from "next/image"
 
 const courseDescriptions: Record<string, string> = {
   "vi-mo": "Hiểu bức tranh kinh tế vĩ mô, đầu tư thông minh và tư duy chiến lược dài hạn. Khóa học 2 ngày 1 đêm tại Làng Cao Phong — Hòa Bình, cách Hà Nội 80km.",
@@ -176,8 +177,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
                 <div className="grid grid-cols-2 gap-4">
                   {["/scamper1.jpg", "/scamper2.jpg"].map((src, i) => (
                     <div key={i} className="rounded-xl overflow-hidden border border-gray-100">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={src} alt="Khóa học Scamper của Mỹ" className="w-full h-48 object-cover" />
+                      <Image src={src} alt="Khóa học Scamper của Mỹ" width={600} height={400} className="w-full h-48 object-cover" unoptimized />
                       <div className="p-2.5 text-center text-sm text-gray-600 font-medium">📸 Khóa học Scamper của Mỹ</div>
                     </div>
                   ))}
