@@ -183,13 +183,13 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
                   ))}
                 </div>
                 <div className="mt-5 text-center">
-                  <Link
-                    href="https://www.langcaophong.com/kham-pha-lang"
+                  <a
+                    href="/kham-pha-lang"
                     className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-base transition-all hover:scale-105 text-white"
                     style={{ backgroundColor: '#2d6a4f' }}
                   >
                     🎬 Hình ảnh & Video về Làng Cao Phong
-                  </Link>
+                  </a>
                 </div>
               </div>
             )}
