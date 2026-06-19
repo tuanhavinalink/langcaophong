@@ -174,7 +174,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
                   <span>🖼️</span> Thư Viện Ảnh
                 </h2>
                 <div className="grid grid-cols-2 gap-4">
-                  {["/scamper1.jpg", "/scamper%202.jpg"].map((src, i) => (
+                  {["/scamper1.jpg", "/scamper2.jpg"].map((src, i) => (
                     <div key={i} className="rounded-xl overflow-hidden border border-gray-100">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={src} alt="Khóa học Scamper của Mỹ" className="w-full h-48 object-cover" />
