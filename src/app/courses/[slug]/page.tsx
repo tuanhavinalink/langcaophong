@@ -87,9 +87,20 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
       {/* Hero */}
       <div className={`bg-gradient-to-br ${gradient} py-20`}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link href="/#courses" className="inline-flex items-center gap-2 text-white/80 hover:text-white mb-6 text-sm">
-            <ArrowLeft className="w-4 h-4" /> Quay lại
-          </Link>
+          <div className="flex items-center justify-between mb-6">
+            <Link href="/#courses" className="inline-flex items-center gap-2 text-white/80 hover:text-white text-sm">
+              <ArrowLeft className="w-4 h-4" /> Quay lại
+            </Link>
+            {slug === "trai-he" && (
+              <Link
+                href="https://www.langcaophong.com/kham-pha-lang"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all hover:scale-105"
+                style={{ backgroundColor: '#fff', color: '#2d6a4f' }}
+              >
+                🎬 Hình ảnh & Video về Làng Cao Phong
+              </Link>
+            )}
+          </div>
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <div className="text-white">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium mb-4 bg-white/20">
