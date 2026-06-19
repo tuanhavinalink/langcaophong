@@ -167,6 +167,24 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
               </div>
             )}
 
+            {/* Gallery ảnh — trai-he */}
+            {slug === "trai-he" && (
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h2 className="text-2xl font-bold text-gray-900 mb-5 flex items-center gap-2">
+                  <span>🖼️</span> Thư Viện Ảnh
+                </h2>
+                <div className="grid grid-cols-2 gap-4">
+                  {["/scamper1.jpg", "/scamper 2.jpg"].map((src, i) => (
+                    <div key={i} className="rounded-xl overflow-hidden border border-gray-100">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={src} alt="Khóa học Scamper của Mỹ" className="w-full h-48 object-cover" />
+                      <div className="p-2.5 text-center text-sm text-gray-600 font-medium">📸 Khóa học Scamper của Mỹ</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {curriculum.length > 0 && (
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                 <h2 className="text-2xl font-bold text-gray-900 mb-5 flex items-center gap-2">
