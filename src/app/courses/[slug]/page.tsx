@@ -87,20 +87,9 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
       {/* Hero */}
       <div className={`bg-gradient-to-br ${gradient} py-20`}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-6">
-            <Link href="/#courses" className="inline-flex items-center gap-2 text-white/80 hover:text-white text-sm">
-              <ArrowLeft className="w-4 h-4" /> Quay lại
-            </Link>
-            {slug === "trai-he" && (
-              <Link
-                href="https://www.langcaophong.com/kham-pha-lang"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all hover:scale-105"
-                style={{ backgroundColor: '#fff', color: '#2d6a4f' }}
-              >
-                🎬 Hình ảnh & Video về Làng Cao Phong
-              </Link>
-            )}
-          </div>
+          <Link href="/#courses" className="inline-flex items-center gap-2 text-white/80 hover:text-white mb-6 text-sm">
+            <ArrowLeft className="w-4 h-4" /> Quay lại
+          </Link>
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <div className="text-white">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium mb-4 bg-white/20">
@@ -192,6 +181,15 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
                       <div className="p-2.5 text-center text-sm text-gray-600 font-medium">📸 Khóa học Scamper của Mỹ</div>
                     </div>
                   ))}
+                </div>
+                <div className="mt-5 text-center">
+                  <Link
+                    href="https://www.langcaophong.com/kham-pha-lang"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-base transition-all hover:scale-105 text-white"
+                    style={{ backgroundColor: '#2d6a4f' }}
+                  >
+                    🎬 Hình ảnh & Video về Làng Cao Phong
+                  </Link>
                 </div>
               </div>
             )}
