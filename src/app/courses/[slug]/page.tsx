@@ -126,8 +126,13 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
             {/* Price Card */}
             <div className="bg-white rounded-2xl p-6 shadow-xl">
               <div className="text-center mb-5">
-                <p className="text-gray-500 text-sm mb-1">Học phí ăn ở tại Làng</p>
+                <p className="text-gray-500 text-sm mb-1">
+                  {slug === "trai-he" ? "Học phí gói đầy đủ (5 ngày)" : "Học phí ăn ở tại Làng"}
+                </p>
                 <div className="text-4xl font-bold mb-1" style={{ color: '#2d6a4f' }}>{formatCurrency(course.price)}</div>
+                {slug === "trai-he" && (
+                  <p className="text-xs text-gray-400 mt-1">Gói cơ bản từ 3.000.000 đ — xem chi tiết bên dưới</p>
+                )}
               </div>
 
               {/* Register options */}

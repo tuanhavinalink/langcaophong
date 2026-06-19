@@ -35,7 +35,7 @@ const courses = [
     name: "Trại Hè Sáng Tạo Harvard",
     desc: "Trẻ 10–17 tuổi học 7 phương pháp Sáng tạo SCAMPER (Harvard), khởi nghiệp Junior Startup, thăm Trang trại & Công viên Di sản. Thầy Tuấn Hà – Mentor SharkTank VN trực tiếp đào tạo.",
     duration: "5 ngày 4 đêm",
-    price: 3000000,
+    price: 5000000,
     originalPrice: null,
     icon: Leaf,
     color: "from-orange-400 to-amber-500",
