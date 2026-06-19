@@ -15,12 +15,14 @@ function fmt(n: number) {
 const SCHEDULES: Record<string, string[]> = {
   "vi-mo": ["20 – 21/06/2026", "04 – 05/07/2026"],
   "solo": ["27 – 28/06/2026"],
+  "trai-he": ["13 – 17/07/2026"],
 }
 
 const CK_NOTE: Record<string, string> = {
   "vi-mo": "Vi Mo",
   "solo": "Solo",
   "detox-sam": "Detox",
+  "trai-he": "Trai He",
 }
 
 interface Props {

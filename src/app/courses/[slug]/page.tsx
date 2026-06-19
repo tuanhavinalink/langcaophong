@@ -8,6 +8,7 @@ const courseDescriptions: Record<string, string> = {
   "vi-mo": "Hiểu bức tranh kinh tế vĩ mô, đầu tư thông minh và tư duy chiến lược dài hạn. Khóa học 2 ngày 1 đêm tại Làng Cao Phong — Hòa Bình, cách Hà Nội 80km.",
   "solo": "Vận hành doanh nghiệp 1 người bằng AI. Tìm 350 ngách siêu kiếm tiền trong 7 ngày. Học trực tiếp với thầy Tuấn Hà (Mentor SharkTank) tại Làng Cao Phong.",
   "detox-sam": "Detox thân tâm, thiền Gosinga, ăn thực dưỡng Sâm và học trồng Sâm kinh tế cao. 5 ngày 4 đêm tại Làng Cao Phong — Hòa Bình.",
+  "trai-he": "Trại Hè Sáng Tạo Harvard dành cho trẻ 10–17 tuổi. Học 7 phương pháp SCAMPER, khởi nghiệp Junior Startup, thăm Công viên Di sản & Trang Trại. Thầy Tuấn Hà – Mentor SharkTank VN.",
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -39,11 +40,13 @@ const gradients: Record<string, string> = {
   "vi-mo": "from-blue-600 to-cyan-500",
   "solo": "from-purple-500 to-pink-500",
   "detox-sam": "from-green-500 to-emerald-500",
+  "trai-he": "from-orange-400 to-amber-500",
 }
 
 const fixedSchedules: Record<string, string[]> = {
   "vi-mo": ["20 – 21/06/2026", "04 – 05/07/2026"],
   "solo": ["27 – 28/06/2026"],
+  "trai-he": ["13 – 17/07/2026"],
 }
 
 export default async function CoursePage({ params }: { params: Promise<{ slug: string }> }) {

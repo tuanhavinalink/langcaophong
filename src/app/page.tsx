@@ -31,15 +31,15 @@ const courses = [
     schedules: ["27 – 28/06/2026"],
   },
   {
-    slug: "detox-sam",
-    name: "Detox Thân Tâm & Trồng Sâm",
-    desc: "3 trụ cột Thân Khỏe – Tâm An – Tiền Nhiều. Ăn thực dưỡng Sâm, thiền Gosinga, học trồng Sâm có giá trị kinh tế cao.",
+    slug: "trai-he",
+    name: "Trại Hè Sáng Tạo Harvard",
+    desc: "Trẻ 10–17 tuổi học 7 phương pháp Sáng tạo SCAMPER (Harvard), khởi nghiệp Junior Startup, thăm Trang trại & Công viên Di sản. Thầy Tuấn Hà – Mentor SharkTank VN trực tiếp đào tạo.",
     duration: "5 ngày 4 đêm",
-    price: 3300000,
+    price: 3000000,
     originalPrice: null,
     icon: Leaf,
-    color: "from-green-500 to-emerald-500",
-    schedules: [],
+    color: "from-orange-400 to-amber-500",
+    schedules: ["13 – 17/07/2026"],
   },
 ]
 
