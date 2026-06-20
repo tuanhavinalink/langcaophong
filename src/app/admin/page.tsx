@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { Users, Calendar, Search, Edit2, Check, X, TrendingUp, Home, Plus, Trash2, Coffee, Bell, Pin, Send, BookOpen, Video, Image as ImageIcon, Lock } from "lucide-react"
+import BookingDetailPopup from "@/components/BookingDetailPopup"
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount)
@@ -84,6 +85,7 @@ export default function AdminPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [tab, setTab] = useState<"users" | "bookings" | "rooms" | "services" | "notifications" | "courses" | "media" | "blocked">("users")
+  const [selectedBooking, setSelectedBooking] = useState<BookingData | null>(null)
   const [users, setUsers] = useState<UserData[]>([])
   const [bookings, setBookings] = useState<BookingData[]>([])
   const [rooms, setRooms] = useState<RoomData[]>([])
@@ -450,13 +452,13 @@ export default function AdminPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {filteredBookings.map(booking => (
-                    <tr key={booking.id} className="hover:bg-gray-50">
+                    <tr key={booking.id} className="hover:bg-green-50 cursor-pointer" onClick={() => setSelectedBooking(booking)}>
                       <td className="px-4 py-3"><div className="font-medium text-gray-900 text-sm">{booking.user?.name || '—'}</div><div className="text-xs text-gray-500">{booking.user?.phone || booking.user?.email}</div></td>
                       <td className="px-4 py-3 text-sm text-gray-700">{booking.isFullVillage ? `Nguyên Làng - ${booking.companyName || ''}` : booking.room?.name || '—'}</td>
                       <td className="px-4 py-3 text-xs text-gray-500">{booking.checkIn ? formatDate(booking.checkIn) : '—'}{booking.checkOut ? ` → ${formatDate(booking.checkOut)}` : ''}</td>
                       <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[booking.status]}`}>{statusLabels[booking.status]}</span></td>
                       <td className="px-4 py-3 text-sm font-bold" style={{ color: '#2d6a4f' }}>{formatCurrency(booking.totalPrice)}</td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                         <div className="flex gap-1">
                           {booking.status === "PENDING" && (
                             <>
@@ -1116,6 +1118,11 @@ export default function AdminPage() {
         </div>
       )}
       </div>
+
+      {/* Booking detail popup */}
+      {selectedBooking && (
+        <BookingDetailPopup booking={selectedBooking as any} onClose={() => setSelectedBooking(null)} />
+      )}
     </div>
   )
 }
